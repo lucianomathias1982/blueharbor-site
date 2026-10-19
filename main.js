@@ -4,7 +4,7 @@
 
   // Contato dos parceiros. Preencha e os botões "Quero ser prestador" etc. abrem o canal certo.
   const CONTACT = {
-    email: '',      // ex.: 'contato@blueharbor.app'
+    email: 'luciano@blueharbor-ai.app',
     whatsapp: '',   // só números com DDI, ex.: '5512999999999'
   };
 
