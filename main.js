@@ -197,38 +197,41 @@
   $$('input[name="boat"]').forEach((r) => r.addEventListener('change', render));
   loadSea().then((h) => { hours = h; render(); }).catch(seaError);
 
-  /* ---------- Tour: a tela do celular acompanha o recurso em foco ---------- */
+  /* ---------- Tour: a tela do celular acompanha o recurso mais perto do centro ---------- */
   const steps = $$('.step');
   const stage = $$('[data-stage]');
+  let current = '';
   const show = (name) => {
+    if (name === current) return;
+    current = name;
     stage.forEach((img) => img.classList.toggle('is-on', img.dataset.stage === name));
     steps.forEach((s) => s.classList.toggle('is-active', s.dataset.screen === name));
   };
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) show(e.target.dataset.screen); });
-    }, { rootMargin: '-45% 0px -45% 0px' });
-    steps.forEach((s) => io.observe(s));
-    show(steps[0].dataset.screen);
+  const pickStep = () => {
+    const mid = innerHeight / 2;
+    let best = steps[0], dist = Infinity;
+    for (const s of steps) {
+      const r = s.getBoundingClientRect();
+      const d = Math.abs(r.top + r.height / 2 - mid);
+      if (d < dist) { dist = d; best = s; }
+    }
+    show(best.dataset.screen);
+  };
 
-    /* Revelar ao rolar */
-    const rev = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); rev.unobserve(e.target); } });
-    }, { rootMargin: '0px 0px -8% 0px' });
-    $$('.section__head, .card, .qr__steps li, .faq details, .cta').forEach((el) => {
-      if (el.getBoundingClientRect().top > innerHeight) { el.classList.add('reveal'); rev.observe(el); }
-    });
+  /* ---------- Link ativo no menu ---------- */
+  const links = $$('.nav__links a');
+  const sections = links.map((l) => $(l.getAttribute('href'))).filter(Boolean);
+  const pickSection = () => {
+    const y = innerHeight * 0.4;
+    const active = sections.filter((s) => s.getBoundingClientRect().top <= y).pop();
+    links.forEach((l) => l.setAttribute('aria-current', String(!!active && l.getAttribute('href') === `#${active.id}`)));
+  };
 
-    /* Link ativo no menu */
-    const links = $$('.nav__links a');
-    const spy = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        links.forEach((l) => l.setAttribute('aria-current', String(l.getAttribute('href') === `#${e.target.id}`)));
-      });
-    }, { rootMargin: '-40% 0px -55% 0px' });
-    links.forEach((l) => { const s = $(l.getAttribute('href')); if (s) spy.observe(s); });
-  }
+  $('.tour').classList.add('is-live');
+  const onScroll = () => { pickStep(); pickSection(); };
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll, { passive: true });
+  onScroll();
 
   $('[data-year]').textContent = new Date().getFullYear();
 })();
