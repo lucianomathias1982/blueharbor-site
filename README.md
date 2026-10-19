@@ -2,7 +2,7 @@
 
 Site público do BlueHarbor: https://lucianomathias1982.github.io/blueharbor-site/
 
-- `index.html`, `styles.css`, `main.js` — a página, sem framework nem build.
+- `index.html`, `styles.css`, `main.js` — a página, sem framework nem build. Ao mudar CSS ou JS, aumente o `?v=` nos links do `index.html` (o GitHub Pages guarda cache por 10 minutos).
 - `app/` — versão web do app (modo demonstração), gerada a partir do repositório do app. Não edite à mão.
 - `404.html` — gerado junto com `app/`: abre as rotas internas do app (o GitHub Pages não tem rewrite).
 - `assets/` — logo, ícones, telas do app e QR code.
