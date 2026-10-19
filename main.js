@@ -197,41 +197,38 @@
   $$('input[name="boat"]').forEach((r) => r.addEventListener('change', render));
   loadSea().then((h) => { hours = h; render(); }).catch(seaError);
 
-  /* ---------- Tour: a tela do celular acompanha o recurso mais perto do centro ---------- */
-  const steps = $$('.step');
-  const stage = $$('[data-stage]');
-  let current = '';
-  const show = (name) => {
-    if (name === current) return;
-    current = name;
-    stage.forEach((img) => img.classList.toggle('is-on', img.dataset.stage === name));
-    steps.forEach((s) => s.classList.toggle('is-active', s.dataset.screen === name));
-  };
-  const pickStep = () => {
-    const mid = innerHeight / 2;
-    let best = steps[0], dist = Infinity;
-    for (const s of steps) {
-      const r = s.getBoundingClientRect();
-      const d = Math.abs(r.top + r.height / 2 - mid);
-      if (d < dist) { dist = d; best = s; }
-    }
-    show(best.dataset.screen);
-  };
-
-  /* ---------- Link ativo no menu ---------- */
+  /* ---------- Menu sólido ao rolar e link da seção atual ---------- */
+  const nav = $('.nav');
   const links = $$('.nav__links a');
   const sections = links.map((l) => $(l.getAttribute('href'))).filter(Boolean);
-  const pickSection = () => {
+  const onScroll = () => {
+    nav.classList.toggle('is-solid', scrollY > 40);
     const y = innerHeight * 0.4;
     const active = sections.filter((s) => s.getBoundingClientRect().top <= y).pop();
     links.forEach((l) => l.setAttribute('aria-current', String(!!active && l.getAttribute('href') === `#${active.id}`)));
   };
-
-  $('.tour').classList.add('is-live');
-  const onScroll = () => { pickStep(); pickSection(); };
   addEventListener('scroll', onScroll, { passive: true });
   addEventListener('resize', onScroll, { passive: true });
   onScroll();
+
+  /* ---------- Vídeos de fundo: só tocam se a pessoa não pediu menos movimento nem economia de dados ---------- */
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData;
+  const videos = $$('video.bgvideo');
+  if (!calm) {
+    const small = matchMedia('(max-width: 760px)').matches;
+    const start = (v) => {
+      if (!v.src) { v.src = small ? v.dataset.srcSm : v.dataset.srcLg; v.load(); }
+      v.play().catch(() => {}); // sem autoplay, fica a imagem de capa
+    };
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e) => (e.isIntersecting ? start(e.target) : e.target.pause()));
+      }, { rootMargin: '200px 0px' });
+      videos.forEach((v) => io.observe(v));
+    } else {
+      videos.forEach(start);
+    }
+  }
 
   $('[data-year]').textContent = new Date().getFullYear();
 })();
