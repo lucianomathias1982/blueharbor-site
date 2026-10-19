@@ -304,7 +304,8 @@ p { margin: 0 0 1em; text-wrap: pretty; }
 }
 
 /* ---------- Tour dos recursos ---------- */
-.tour { display: grid; grid-template-columns: 1fr 380px; gap: clamp(32px, 6vw, 96px); }
+/* O celular fixo sempre cabe na altura da janela (tela 375×842 + moldura). */
+.tour { display: grid; grid-template-columns: 1fr min(380px, calc((100vh - var(--nav-h) - 72px) * .445 + 20px)); gap: clamp(32px, 6vw, 96px); }
 .tour__steps { list-style: none; margin: 0; padding: 0; }
 .step { position: relative; padding: 28px 0 28px 72px; border-bottom: 1px solid var(--border); transition: opacity .3s; }
 .step:last-child { border-bottom: 0; }
@@ -319,7 +320,7 @@ p { margin: 0 0 1em; text-wrap: pretty; }
 @media (prefers-color-scheme: dark) { .step__icon { color: #6EA4FA; } .step__icon--red { color: #f07a7a; } }
 .step__shot { display: none; }
 .tour__stage { position: relative; }
-.phone--stage { position: sticky; top: calc(var(--nav-h) + 32px); width: 100%; }
+.phone--stage { position: sticky; top: calc(var(--nav-h) + 28px); width: 100%; }
 .phone--stage img { position: absolute; top: 10px; left: 10px; width: calc(100% - 20px); opacity: 0; transform: scale(.98); transition: opacity .45s ease, transform .45s ease; }
 .phone--stage img:first-child { position: relative; inset: auto; width: 100%; }
 .phone--stage img.is-on { opacity: 1; transform: none; }
@@ -453,7 +454,7 @@ details[open] > summary::after { transform: rotate(-135deg) translate(-2px, -2px
     animation-range: entry 0% entry 35%;
   }
 }
-@keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { transform: translateY(28px) scale(.985); } to { transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
