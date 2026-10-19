@@ -1,4 +1,4 @@
-/* BlueHarbor — site. Azuis do oceano, areia e o laranja do pôr do sol só como detalhe. */
+/* BlueHarbor — site. Azuis do oceano, areia e o verde-mar como cor de ação. */
 
 :root {
   --abyss: #061428;
@@ -12,8 +12,8 @@
   --teal: #0E9AA7;
   --sand: #F5EDE0;
   --sand-2: #EADFCB;
-  --sun: #F29A4A;
-  --sun-2: #E5853A;
+  --sun: #2FBF71;
+  --sun-2: #1FA160;
   --green: #1E9E5A;
   --red: #D64545;
   --amber: #D99A00;
@@ -85,8 +85,8 @@ h3 { font-size: 1.2rem; font-weight: 700; letter-spacing: -.01em; line-height: 1
 .btn svg { width: 1.2em; height: 1.2em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .btn:hover { transform: translateY(-2px); }
 .btn:active { transform: translateY(0) scale(.98); }
-.btn--sun { background: var(--sun); color: #2a1503; box-shadow: 0 10px 26px rgba(242, 154, 74, .38); }
-.btn--sun:hover { background: #f5a95f; }
+.btn--sun { background: var(--sun); color: #04261A; box-shadow: 0 10px 26px rgba(47, 191, 113, .38); }
+.btn--sun:hover { background: #45CC84; }
 .btn--ocean { background: var(--ocean); box-shadow: 0 10px 24px rgba(11, 59, 111, .28); }
 .btn--ocean:hover { background: var(--ink); }
 .btn--teal { background: var(--teal); box-shadow: 0 10px 24px rgba(14, 154, 167, .28); }
@@ -326,7 +326,7 @@ h3 { font-size: 1.2rem; font-weight: 700; letter-spacing: -.01em; line-height: 1
 .get__photo img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
 .get__cards { display: grid; gap: 16px; }
 .getcard { display: grid; gap: 16px; padding: 22px; border-radius: var(--radius); background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .14); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); transition: border-color .2s, background-color .2s; }
-.getcard.is-mine { background: rgba(255, 255, 255, .12); border-color: rgba(242, 154, 74, .7); box-shadow: 0 0 0 3px rgba(242, 154, 74, .2); }
+.getcard.is-mine { background: rgba(255, 255, 255, .12); border-color: rgba(47, 191, 113, .7); box-shadow: 0 0 0 3px rgba(47, 191, 113, .2); }
 .mine-label { font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #FFD3A8; margin-bottom: -6px; }
 .getcard__head { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: start; }
 .getcard__head h3 { margin: 0 0 2px; }
@@ -335,7 +335,7 @@ h3 { font-size: 1.2rem; font-weight: 700; letter-spacing: -.01em; line-height: 1
 .getcard[data-os="android"] .getcard__logo { color: #3DDC84; }
 .pill { font-size: .72rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 .pill--green { background: rgba(59, 224, 138, .16); color: #6FF0AC; }
-.pill--sun { background: rgba(242, 154, 74, .18); color: #FFC48E; }
+.pill--sun { background: rgba(47, 191, 113, .18); color: #A7F3C9; }
 .howto { border-top: 1px solid rgba(255, 255, 255, .14); padding-top: 14px; }
 .howto ol { margin: 12px 0 8px; padding-left: 1.2em; color: rgba(255, 255, 255, .78); display: grid; gap: 6px; }
 .howto p { font-size: .9rem; margin: 0; color: rgba(255, 255, 255, .7); }
