@@ -1,6 +1,6 @@
 # BlueHarbor — site
 
-Site público do BlueHarbor: https://lucianomathias1982.github.io/blueharbor-site/
+Site público do BlueHarbor: https://blueharbor-ai.app (GitHub Pages com domínio próprio; DNS na Hostinger, arquivo `CNAME`).
 
 - `index.html`, `styles.css`, `main.js` — a página, sem framework nem build. Ao mudar CSS ou JS, aumente o `?v=` nos links do `index.html` (o GitHub Pages guarda cache por 10 minutos).
 - `app/` — versão web do app (modo demonstração), gerada a partir do repositório do app. Não edite à mão.
@@ -15,7 +15,7 @@ Com o repositório do app clonado ao lado deste (`../blueharbor`, sem `.env.loca
 ./scripts/build-app.sh
 ```
 
-Se o site ganhar domínio próprio na raiz (ex.: `blueharbor.app`), rode com o novo caminho base: `./scripts/build-app.sh ../blueharbor /app`.
+O app é exportado com caminho base `/app` (raiz do domínio). Para outro caminho: `./scripts/build-app.sh ../blueharbor /outro/app`.
 
 ## Novo APK
 

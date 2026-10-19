@@ -5,7 +5,7 @@ set -euo pipefail
 
 SITE="$(cd "$(dirname "$0")/.." && pwd)"
 APP_REPO="${1:-$SITE/../blueharbor}"
-BASE_URL="${2:-/blueharbor-site/app}"
+BASE_URL="${2:-/app}"
 MOBILE="$APP_REPO/apps/mobile"
 CONFIG="$MOBILE/app.config.js"
 
