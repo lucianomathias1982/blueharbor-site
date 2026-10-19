@@ -220,14 +220,17 @@
       if (!v.src) { v.src = small ? v.dataset.srcSm : v.dataset.srcLg; v.load(); }
       v.play().catch(() => {}); // sem autoplay, fica a imagem de capa
     };
-    if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((e) => (e.isIntersecting ? start(e.target) : e.target.pause()));
-      }, { rootMargin: '200px 0px' });
-      videos.forEach((v) => io.observe(v));
-    } else {
-      videos.forEach(start);
-    }
+    // Toca o que está na tela (ou quase) e pausa o resto; checado na carga e a cada rolagem.
+    const sync = () => {
+      videos.forEach((v) => {
+        const r = v.getBoundingClientRect();
+        const near = r.bottom > -200 && r.top < innerHeight + 200;
+        if (near) { if (v.paused) start(v); } else if (!v.paused) v.pause();
+      });
+    };
+    addEventListener('scroll', sync, { passive: true });
+    addEventListener('resize', sync, { passive: true });
+    sync();
   }
 
   $('[data-year]').textContent = new Date().getFullYear();
