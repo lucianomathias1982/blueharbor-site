@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BlueHarbor — O Waze do mar</title>
+  <meta name="description" content="Previsão do mar, navegação com alarme de âncora, serviços náuticos sob demanda e poitas para reservar, num app só. Piloto em Ilhabela.">
+  <meta name="theme-color" content="#0B2545">
+  <link rel="canonical" href="https://lucianomathias1982.github.io/blueharbor-site/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="BlueHarbor">
+  <meta property="og:title" content="BlueHarbor — O Waze do mar">
+  <meta property="og:description" content="Posso sair hoje? Previsão do mar, alarme de âncora, serviços náuticos e poitas num app só. Piloto em Ilhabela.">
+  <meta property="og:url" content="https://lucianomathias1982.github.io/blueharbor-site/">
+  <meta property="og:image" content="https://lucianomathias1982.github.io/blueharbor-site/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
+  <link rel="preconnect" href="https://marine-api.open-meteo.com" crossorigin>
+  <link rel="preload" as="image" href="assets/screens/mapa.webp" type="image/webp">
+
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="main.js"></script>
+</head>
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="nav" id="topo">
+    <div class="wrap nav__bar">
+      <a class="brand" href="#topo" aria-label="BlueHarbor, início">
+        <img src="assets/logo-mark.webp" alt="" width="20" height="31">
+        <span>BlueHarbor</span>
+      </a>
+      <nav class="nav__links" aria-label="Seções">
+        <a href="#mar">Mar hoje</a>
+        <a href="#recursos">Recursos</a>
+        <a href="#poitas">Poitas</a>
+        <a href="#parceiros">Parceiros</a>
+        <a href="#duvidas">Dúvidas</a>
+      </nav>
+      <div class="nav__cta">
+        <a class="btn btn--ghost-light btn--sm hide-sm" href="app/">Entrar na plataforma</a>
+        <a class="btn btn--primary btn--sm" href="#baixar">Baixar</a>
+        <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu">
+          <span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="menu" id="menu" hidden>
+      <nav class="wrap menu__inner" aria-label="Menu">
+        <a href="#mar">Mar hoje</a>
+        <a href="#recursos">Recursos</a>
+        <a href="#poitas">Poitas</a>
+        <a href="#parceiros">Para parceiros</a>
+        <a href="#duvidas">Dúvidas</a>
+        <div class="menu__actions">
+          <a class="btn btn--primary btn--block" href="#baixar">Baixar o app</a>
+          <a class="btn btn--ghost-light btn--block" href="app/">Abrir no navegador</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero__sea" aria-hidden="true">
+        <svg class="wave wave--1" viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0 60 C 240 10 480 110 720 60 S 1200 10 1440 60 V120 H0Z"/></svg>
+        <svg class="wave wave--2" viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0 70 C 200 30 520 110 760 66 S 1220 24 1440 72 V120 H0Z"/></svg>
+      </div>
+      <div class="wrap hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow eyebrow--light"><span class="pulse" aria-hidden="true"></span> Piloto em Ilhabela · temporada 2026/27</p>
+          <h1>O Waze do mar. Com tudo que o seu barco precisa dentro.</h1>
+          <p class="lead">Saiba se dá para sair hoje, navegue com alarme de âncora, chame mecânico ou reboque e reserve uma poita para a noite. Num app só.</p>
+
+          <div class="hero__actions" data-platform-actions>
+            <a class="btn btn--primary btn--lg" href="#baixar" data-cta="primary">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+              <span>Baixar o app</span>
+            </a>
+            <a class="btn btn--ghost-light btn--lg" href="app/" data-cta="secondary">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg>
+              <span>Abrir no navegador</span>
+            </a>
+          </div>
+          <p class="hero__note">Grátis · Android, iPhone e navegador · sem cadastro para testar</p>
+        </div>
+
+        <div class="hero__visual">
+          <div class="phone phone--hero">
+            <img src="assets/screens/mapa.webp" alt="Tela do mapa do BlueHarbor em Ilhabela, com poitas, prestadores, perigos e o botão SOS" width="375" height="812" fetchpriority="high">
+          </div>
+          <div class="float float--go" data-go-chip aria-live="polite">
+            <span class="dot dot--loading" data-go-dot></span>
+            <div>
+              <small>Ilhabela agora</small>
+              <strong data-go-chip-text>Consultando o mar…</strong>
+            </div>
+          </div>
+          <div class="float float--mooring">
+            <span class="float__icon" aria-hidden="true">⚓</span>
+            <div>
+              <small>Poita livre hoje</small>
+              <strong>Saco da Capela · 40 pés</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROMESSAS -->
+    <section class="strip" aria-label="Destaques">
+      <div class="wrap strip__grid">
+        <div><strong>4 módulos</strong><span>segurança, navegação, serviços e poitas</span></div>
+        <div><strong>185 a um toque</strong><span>Marinha sempre visível, até offline</span></div>
+        <div><strong>Previsão real</strong><span>vento, ondas, maré e pressão</span></div>
+        <div><strong>Pagamento seguro</strong><span>valor retido até o serviço ser feito</span></div>
+      </div>
+    </section>
+
+    <!-- MAR AGORA -->
+    <section class="section" id="mar">
+      <div class="wrap mar">
+        <div class="mar__intro">
+          <p class="eyebrow">Posso sair hoje?</p>
+          <h2>O mar de Ilhabela, agora.</h2>
+          <p>A mesma análise que o app faz antes de você soltar a amarra: vento, rajadas, ondas e pressão das próximas 12 horas, ajustados ao tamanho do seu barco.</p>
+          <fieldset class="seg" aria-label="Tamanho do barco">
+            <legend>Meu barco tem</legend>
+            <label><input type="radio" name="boat" value="20"> <span>20 pés</span></label>
+            <label><input type="radio" name="boat" value="28" checked> <span>28 pés</span></label>
+            <label><input type="radio" name="boat" value="40"> <span>40 pés</span></label>
+          </fieldset>
+          <p class="fine">Orientação, não autorização: a decisão é sempre do comandante.</p>
+        </div>
+
+        <article class="go card" data-go aria-live="polite" aria-busy="true">
+          <header class="go__head">
+            <span class="go__badge" data-go-badge>Carregando</span>
+            <span class="go__place">Canal de São Sebastião · próximas 12 h</span>
+          </header>
+          <h3 class="go__title" data-go-title>Consultando a previsão…</h3>
+          <ul class="go__reasons" data-go-reasons></ul>
+          <dl class="go__stats">
+            <div><dt>Vento</dt><dd data-stat="wind">—</dd></div>
+            <div><dt>Rajadas</dt><dd data-stat="gust">—</dd></div>
+            <div><dt>Ondas</dt><dd data-stat="wave">—</dd></div>
+            <div><dt>Água</dt><dd data-stat="water">—</dd></div>
+          </dl>
+          <div class="go__chart" data-go-chart aria-hidden="true"></div>
+          <footer class="go__foot">
+            <span data-go-updated>Fonte: Open-Meteo</span>
+            <a class="link" href="app/mar">Previsão completa e tábua de maré →</a>
+          </footer>
+        </article>
+      </div>
+    </section>
+
+    <!-- RECURSOS -->
+    <section class="section section--alt" id="recursos">
+      <div class="wrap">
+        <div class="section__head">
+          <p class="eyebrow">Um app, o mar inteiro</p>
+          <h2>Do “dá para sair?” ao “quem me ajuda agora?”</h2>
+          <p>Hoje isso está espalhado em quatro sites, três grupos de WhatsApp e um telefone que ninguém atende no domingo. No BlueHarbor está no mesmo lugar.</p>
+        </div>
+
+        <div class="tour">
+          <ol class="tour__steps">
+            <li class="step" data-screen="mar">
+              <span class="step__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M3 8c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg>
+              </span>
+              <h3>Segurança e previsão</h3>
+              <p>Vento, ondas, maré e barômetro para o ponto onde o barco está, com um veredito claro. Avisos aos Navegantes resumidos e perigos relatados pela comunidade: pedra, rede de pesca, mar ruim.</p>
+              <figure class="step__shot phone phone--sm"><img src="assets/screens/mar.webp" alt="Tela Mar e segurança com o veredito Posso sair hoje" loading="lazy" width="375" height="812"></figure>
+            </li>
+            <li class="step" data-screen="mapa">
+              <span class="step__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>
+              </span>
+              <h3>Navegação</h3>
+              <p>Mapa náutico, rotas com distância e hora de chegada, amigos no mapa com privacidade e <strong>alarme de âncora</strong> que toca se o barco garrar, mesmo com a tela apagada.</p>
+              <figure class="step__shot phone phone--sm"><img src="assets/screens/mapa.webp" alt="Mapa náutico com poitas, serviços e perigos" loading="lazy" width="375" height="812"></figure>
+            </li>
+            <li class="step" data-screen="servicos">
+              <span class="step__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
+              </span>
+              <h3>Serviços sob demanda</h3>
+              <p>Mecânico e eletricista a bordo, reboque, limpeza, marinheiro. Veja quem <strong>vai até você</strong>, quem está aberto agora e a nota de outros navegantes. O pagamento fica retido até o serviço ser feito.</p>
+              <figure class="step__shot phone phone--sm"><img src="assets/screens/servicos.webp" alt="Lista de prestadores com nota, horário e selo de verificado" loading="lazy" width="375" height="812"></figure>
+            </li>
+            <li class="step" data-screen="poita">
+              <span class="step__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M5 12H3a9 9 0 0 0 18 0h-2M8 11h8"/></svg>
+              </span>
+              <h3>Poitas para reservar</h3>
+              <p>Livres em verde, ocupadas em vermelho, e só as que cabem no seu barco (pés, calado e peso). Reserve por noite e pague no app. Só entram poitas com documento e vistoria em dia.</p>
+              <figure class="step__shot phone phone--sm"><img src="assets/screens/poita.webp" alt="Detalhe de uma poita com profundidade, tamanho máximo do barco e diária" loading="lazy" width="375" height="812"></figure>
+            </li>
+            <li class="step" data-screen="sos">
+              <span class="step__icon step__icon--red" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m5.6 5.6 3.6 3.6m5.6 5.6 3.6 3.6m0-12.8-3.6 3.6m-5.6 5.6-3.6 3.6"/></svg>
+              </span>
+              <h3>SOS que chega em quem está perto</h3>
+              <p>Ligue 185 ou 193 com um toque. Para pane ou reboque, o pedido vai com a sua posição para os prestadores mais próximos.</p>
+              <figure class="step__shot phone phone--sm"><img src="assets/screens/sos.webp" alt="Tela SOS com botões para ligar 185 e 193 e pedido de assistência" loading="lazy" width="375" height="812"></figure>
+            </li>
+          </ol>
+
+          <div class="tour__stage" aria-hidden="true">
+            <div class="phone phone--stage">
+              <img data-stage="mar" src="assets/screens/mar.webp" alt="" class="is-on" width="375" height="812">
+              <img data-stage="mapa" src="assets/screens/mapa.webp" alt="" loading="lazy" width="375" height="812">
+              <img data-stage="servicos" src="assets/screens/servicos.webp" alt="" loading="lazy" width="375" height="812">
+              <img data-stage="poita" src="assets/screens/poita.webp" alt="" loading="lazy" width="375" height="812">
+              <img data-stage="sos" src="assets/screens/sos.webp" alt="" loading="lazy" width="375" height="812">
+            </div>
+          </div>
+        </div>
+
+        <div class="extras">
+          <div class="extra card">
+            <h3>Copiloto com IA</h3>
+            <p>Pergunte “dá para ir até a Ilha de Búzios amanhã?” e receba uma resposta que cruza a previsão com o seu barco.</p>
+          </div>
+          <div class="extra card">
+            <h3>Perfil digital do barco</h3>
+            <p>Dados, motores, documentos e histórico de serviços num lugar só, prontos para mostrar ao mecânico.</p>
+          </div>
+          <div class="extra card">
+            <h3>Onde ir</h3>
+            <p>Enseadas para fundear, restaurantes com serviço a bordo e lugares com curadoria de quem conhece a ilha.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- POITAS QR -->
+    <section class="section section--navy" id="poitas">
+      <div class="wrap qr">
+        <div class="section__head section__head--light">
+          <p class="eyebrow eyebrow--light">Poitas com placa QR</p>
+          <h2>Chegou na boia? Aponte a câmera.</h2>
+          <p>Cada poita cadastrada ganha uma placa com QR code. Do bote mesmo você vê se ela está livre, se o seu barco cabe e reserva a noite.</p>
+        </div>
+        <ol class="qr__steps">
+          <li>
+            <span class="qr__n">1</span>
+            <h3>Escaneie a placa</h3>
+            <p>Ou digite o número da fita na boia, como BH-ILB-0042.</p>
+          </li>
+          <li>
+            <span class="qr__n">2</span>
+            <h3>Confira se cabe</h3>
+            <p>O app compara tamanho, calado e peso do seu barco com a poita.</p>
+          </li>
+          <li>
+            <span class="qr__n">3</span>
+            <h3>Reserve e pague</h3>
+            <p>Diária no app, cancelamento grátis até 48 h antes.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- PARCEIROS -->
+    <section class="section" id="parceiros">
+      <div class="wrap">
+        <div class="section__head">
+          <p class="eyebrow">Para quem trabalha no mar</p>
+          <h2>Mais clientes, menos WhatsApp.</h2>
+          <p>Estamos cadastrando os primeiros parceiros de Ilhabela antes da temporada de verão. O cadastro é assistido: a gente monta o seu perfil, você só confirma.</p>
+        </div>
+        <div class="partners">
+          <article class="partner card">
+            <span class="partner__tag">Prestadores</span>
+            <h3>Mecânicos, eletricistas, reboque, limpeza, marinheiros e lojas</h3>
+            <ul class="checks">
+              <li>Pedidos de quem está perto, inclusive no meio da semana</li>
+              <li>Desenhe no mapa a área que você atende</li>
+              <li>Pagamento garantido: o valor fica retido antes do serviço</li>
+              <li>Painel com agenda, pedidos e avaliações</li>
+            </ul>
+            <a class="btn btn--primary" href="#contato" data-contact="prestador">Quero ser prestador</a>
+          </article>
+          <article class="partner card">
+            <span class="partner__tag partner__tag--teal">Donos de poita e marinas</span>
+            <h3>Sua poita parada vira renda, com segurança</h3>
+            <ul class="checks">
+              <li>Alugue as noites em que a poita está livre</li>
+              <li>Placa QR na boia e vistoria registrada</li>
+              <li>Só reserva quem tem barco compatível</li>
+              <li>Recebimento direto, com contrato e regras claras</li>
+            </ul>
+            <a class="btn btn--teal" href="#contato" data-contact="poita">Cadastrar minha poita</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- BAIXAR -->
+    <section class="section section--alt" id="baixar">
+      <div class="wrap">
+        <div class="section__head">
+          <p class="eyebrow">Comece agora</p>
+          <h2>Baixe o BlueHarbor ou use direto no navegador.</h2>
+          <p>Esta é a versão de demonstração: os prestadores e poitas são fictícios, mas a previsão do mar é real.</p>
+        </div>
+
+        <div class="get">
+          <article class="getcard card" data-os="android">
+            <div class="getcard__head">
+              <svg class="getcard__logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.6 9.48 19.44 6.3a.38.38 0 0 0-.66-.38l-1.86 3.22a11.4 11.4 0 0 0-9.84 0L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48A10.8 10.8 0 0 0 1 18h22a10.8 10.8 0 0 0-5.4-8.52ZM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z"/></svg>
+              <div>
+                <h3>Android</h3>
+                <p class="muted">APK · versão 0.1.0 · 114 MB · Android 7 ou mais novo</p>
+              </div>
+              <span class="pill pill--green">Disponível</span>
+            </div>
+            <a class="btn btn--primary btn--block" href="https://github.com/lucianomathias1982/blueharbor-site/releases/latest/download/BlueHarbor-android.apk" data-apk>Baixar APK</a>
+            <details class="howto">
+              <summary>Como instalar</summary>
+              <ol>
+                <li>Abra este site no celular Android e toque em <b>Baixar APK</b>.</li>
+                <li>Quando o download terminar, toque no arquivo.</li>
+                <li>Se o Android pedir, permita <b>instalar apps desta fonte</b> (só para o navegador que você usou).</li>
+                <li>Toque em <b>Instalar</b> e abra o BlueHarbor.</li>
+              </ol>
+              <p class="muted">A versão da Google Play chega com o beta aberto.</p>
+            </details>
+          </article>
+
+          <article class="getcard card" data-os="ios">
+            <div class="getcard__head">
+              <svg class="getcard__logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 12.56c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.7-3.18-1.73-1.35-.14-2.64.8-3.33.8-.69 0-1.74-.78-2.86-.76A4.24 4.24 0 0 0 5.3 9.74c-1.53 2.65-.39 6.57 1.1 8.72.73 1.05 1.6 2.23 2.73 2.19 1.1-.05 1.51-.71 2.84-.71 1.32 0 1.7.71 2.86.69 1.18-.02 1.93-1.07 2.65-2.13a9.5 9.5 0 0 0 1.2-2.47 3.83 3.83 0 0 1-2.31-3.47ZM14.2 6.09A3.8 3.8 0 0 0 15.1 3.3a3.88 3.88 0 0 0-2.5 1.3 3.63 3.63 0 0 0-.92 2.7 3.2 3.2 0 0 0 2.52-1.21Z"/></svg>
+              <div>
+                <h3>iPhone</h3>
+                <p class="muted">TestFlight para o beta fechado · App Store depois</p>
+              </div>
+              <span class="pill pill--amber">Em breve</span>
+            </div>
+            <a class="btn btn--dark btn--block" href="app/">Usar no navegador do iPhone</a>
+            <details class="howto">
+              <summary>Deixar com cara de app</summary>
+              <ol>
+                <li>Abra a plataforma no <b>Safari</b>.</li>
+                <li>Toque em <b>Compartilhar</b> <span aria-hidden="true">⬆︎</span>.</li>
+                <li>Escolha <b>Adicionar à Tela de Início</b>.</li>
+              </ol>
+              <p class="muted">Quer entrar no beta do iPhone? <a class="link" href="#contato" data-contact="beta">Fale com a gente</a>.</p>
+            </details>
+          </article>
+
+          <article class="getcard card" data-os="web">
+            <div class="getcard__head">
+              <svg class="getcard__logo" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9S14.5 18.3 12 21c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+              <div>
+                <h3>Navegador</h3>
+                <p class="muted">Computador, tablet ou celular · nada para instalar</p>
+              </div>
+              <span class="pill pill--green">Disponível</span>
+            </div>
+            <a class="btn btn--primary btn--block" href="app/">Abrir a plataforma</a>
+            <div class="qrbox hide-touch">
+              <img src="assets/qr.svg" alt="QR code para abrir este site no celular" width="112" height="112">
+              <p>Está no computador? Aponte a câmera do celular para baixar o app lá.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- DÚVIDAS -->
+    <section class="section" id="duvidas">
+      <div class="wrap faq">
+        <div class="section__head">
+          <p class="eyebrow">Dúvidas</p>
+          <h2>Perguntas frequentes</h2>
+        </div>
+        <div class="faq__list">
+          <details>
+            <summary>O BlueHarbor é pago?</summary>
+            <p>Não para usar. Previsão, mapa, SOS e busca de serviços são grátis. Você só paga quando contrata um serviço ou reserva uma poita, e o valor é combinado antes.</p>
+          </details>
+          <details>
+            <summary>O SOS substitui a Marinha?</summary>
+            <p>Não. Em risco à vida, ligue <b>185</b> (Marinha) ou chame no <b>canal 16</b> do VHF. O app mostra esses contatos o tempo todo, até sem internet. O pedido de assistência do BlueHarbor serve para pane, reboque e apoio, e chama prestadores próximos.</p>
+          </details>
+          <details>
+            <summary>Funciona longe da costa, sem sinal?</summary>
+            <p>Os contatos de emergência e as informações já carregadas continuam disponíveis offline. O alarme de âncora usa o GPS do celular e não precisa de internet. Previsão nova, pedidos e reservas precisam de conexão.</p>
+          </details>
+          <details>
+            <summary>Por que os prestadores e as poitas aparecem como “demo”?</summary>
+            <p>Esta é a versão de demonstração para a temporada 2026/27. Os dados de Ilhabela são fictícios para você testar tudo, inclusive reserva e pagamento simulados. A previsão do mar é real, do Open-Meteo.</p>
+          </details>
+          <details>
+            <summary>Quem vê a minha localização?</summary>
+            <p>Você escolhe: amigos, todos ou ninguém. O alarme de âncora usa a posição em segundo plano só enquanto está ligado. Você pode apagar a conta pelo próprio app.</p>
+          </details>
+          <details>
+            <summary>Quando chega a outras cidades?</summary>
+            <p>Primeiro Ilhabela. Depois São Sebastião, Caraguatatuba e Ubatuba, no litoral norte de São Paulo. Só abrimos uma região quando ela já tem prestadores e poitas suficientes para atender bem.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTATO -->
+    <section class="section section--cta" id="contato">
+      <div class="wrap cta">
+        <img src="assets/logo-mark.webp" alt="" width="48" height="74">
+        <h2>Bons ventos começam aqui.</h2>
+        <p data-contact-text>Quer ser parceiro em Ilhabela, entrar no beta do iPhone ou levar o BlueHarbor para a sua marina? Fale com a gente.</p>
+        <div class="cta__actions" data-contact-actions>
+          <a class="btn btn--primary btn--lg" href="#baixar">Baixar o app</a>
+          <a class="btn btn--ghost-light btn--lg" href="app/">Abrir no navegador</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__grid">
+      <div>
+        <a class="brand brand--footer" href="#topo">
+          <img src="assets/logo-mark.webp" alt="" width="20" height="31">
+          <span>BlueHarbor</span>
+        </a>
+        <p class="muted">Feito em Ilhabela, para quem vive o mar.</p>
+      </div>
+      <div class="footer__sos">
+        <strong>Em emergência no mar</strong>
+        <p><a href="tel:185">Ligue 185</a> (Marinha) · canal 16 VHF · <a href="tel:193">193</a> (Bombeiros)</p>
+        <p class="muted">O BlueHarbor é um marketplace de assistência, não um serviço de salvamento.</p>
+      </div>
+      <div class="footer__credits muted">
+        <p>Previsão: <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a> (CC BY 4.0). Mapas: © OpenStreetMap e OpenSeaMap.</p>
+        <p>© <span data-year>2026</span> BlueHarbor</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
