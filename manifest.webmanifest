@@ -1,7 +1,7 @@
 {
   "name": "BlueHarbor",
   "short_name": "BlueHarbor",
-  "description": "O Waze do mar: previsão, navegação, serviços náuticos e poitas.",
+  "description": "O superapp do mar: previsão, navegação, serviços náuticos, poitas e comunidade.",
   "lang": "pt-BR",
   "start_url": "./app/",
   "scope": "./",
