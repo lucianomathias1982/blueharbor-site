@@ -27,6 +27,7 @@
     .login input { font: inherit; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; width: 100%; }
     .btn { font: inherit; font-weight: 700; padding: 12px 18px; border-radius: 999px; border: 0; background: var(--sea); color: #fff; cursor: pointer; }
     .btn.ghost { background: transparent; color: var(--sea); border: 1px solid var(--line); }
+    .btn.del { color: var(--bad); }
     .err { color: var(--bad); font-weight: 600; min-height: 1.2em; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
     .kpi .v { font-family: Fraunces, Georgia, serif; font-size: 1.9rem; color: var(--abyss); margin-top: 4px; }
@@ -432,7 +433,7 @@
             '<td>' + (a.nightly_price_cents ? brl(a.nightly_price_cents) : '–') + '</td>' +
             '<td><span class="pill s-' + a.status + '">' + STATUS[a.status] + '</span><br><select class="st">' +
             Object.keys(STATUS).map(function (k) { return '<option value="' + k + '"' + (k === a.status ? ' selected' : '') + '>' + STATUS[k] + '</option>'; }).join('') +
-            '</select><textarea class="nt" placeholder="Anotação da equipe">' + esc(a.staff_notes || '') + '</textarea><button class="btn ghost sv">Salvar</button></td></tr>';
+            '</select><textarea class="nt" placeholder="Anotação da equipe">' + esc(a.staff_notes || '') + '</textarea><div class="row"><button class="btn ghost sv">Salvar</button><button class="btn ghost del" data-num="' + esc(a.number) + '" data-name="' + esc(a.owner_name) + '">Excluir</button></div></td></tr>';
         }).join('') || '<tr><td colspan="7" class="muted">Nenhum cadastro ainda. Mande o link blueharbor-ai.app/poita para os donos.</td></tr>');
       Array.prototype.forEach.call(document.querySelectorAll('#apps .sv'), function (btn) {
         btn.onclick = function () {
@@ -442,6 +443,18 @@
             btn.disabled = false;
             if (r.error) { btn.textContent = 'Erro: tente de novo'; return; }
             btn.textContent = 'Salvo';
+            load();
+          });
+        };
+      });
+      // Excluir um cadastro (Luciano, 27/nov/2026): pergunta antes; o número não volta a ser usado.
+      Array.prototype.forEach.call(document.querySelectorAll('#apps .del'), function (btn) {
+        btn.onclick = function () {
+          var tr = btn.closest('tr');
+          if (!confirm('Excluir o cadastro ' + btn.dataset.num + ' (' + btn.dataset.name + ')?\n\nIsso apaga o cadastro de vez e não dá para desfazer. O número ' + btn.dataset.num + ' não será usado de novo.')) return;
+          btn.disabled = true; btn.textContent = 'Excluindo…';
+          sb.rpc('delete_mooring_application', { p_id: tr.dataset.id }).then(function (r) {
+            if (r.error) { btn.disabled = false; btn.textContent = 'Excluir'; alert('Não foi possível excluir: ' + r.error.message); return; }
             load();
           });
         };
