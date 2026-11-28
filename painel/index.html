@@ -49,6 +49,15 @@
     .bars { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding-top: 8px; }
     .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .75rem; color: var(--text2); }
     .bar i { display: block; width: 100%; background: var(--sea); border-radius: 6px 6px 0 0; min-height: 2px; }
+    .hero { background: var(--abyss); color: #fff; border-radius: 20px; padding: 22px 24px; display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; gap: 20px; align-items: center; margin-bottom: 12px; }
+    @media (max-width: 760px) { .hero { grid-template-columns: 1fr; } }
+    .hero .l { font-size: .85rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #9FD0FF; }
+    .hero .v { font-family: Fraunces, Georgia, serif; font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.05; margin: 6px 0 4px; color: #7CE3A6; font-variant-numeric: tabular-nums; }
+    .hero .s { color: #C5D3E6; font-size: .9rem; }
+    .hero-parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+    .hero-parts div { background: rgba(255,255,255,.07); border-radius: 12px; padding: 10px 12px; }
+    .hero-parts b { display: block; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+    .hero-parts span { font-size: .8rem; color: #C5D3E6; }
     .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
     .chart h3 { margin: 0 0 2px; font-size: 1rem; }
     .chart .sub { margin: 0 0 12px; font-size: .85rem; color: var(--text2); }
@@ -124,6 +133,7 @@
       <p class="note">Números do servidor de produção. Enquanto o pagamento real não estiver ligado (CNPJ e conta Stripe), aluguéis e receita ficam zerados; o app de teste usa dados de demonstração.</p>
 
       <h2>Resumo</h2>
+      <div class="hero" id="hero"></div>
       <div class="kpis" id="kpis"></div>
 
       <h2>Visão geral</h2>
@@ -370,13 +380,22 @@
       var done = (b.by_status.confirmada || 0) + (b.by_status.concluida || 0);
       $('when').textContent = 'Atualizado em ' + date(d.generated_at);
       charts();
+      // Receita BlueHarbor em destaque (Luciano, 27/nov/2026), com de onde veio cada parte.
+      var thisMonth = new Date().toISOString().slice(0, 7);
+      var monthRow = (b.by_month || []).filter(function (m) { return m.month === thisMonth; })[0];
+      $('hero').innerHTML = '<div><div class="l">Receita BlueHarbor</div><div class="v">' + brl(revenue) + '</div><div class="s">Total até agora · este mês, em aluguéis: ' + brl(monthRow ? monthRow.platform_cents : 0) + '</div></div>' +
+        '<div class="hero-parts">' +
+        '<div><b>' + brl(b.platform_cents) + '</b><span>Aluguéis de poita (10% + 5%)</span></div>' +
+        '<div><b>' + brl(s.platform_cents) + '</b><span>Serviços</span></div>' +
+        '<div><b>' + brl(p.subscriptions_cents) + '</b><span>Assinaturas Pro</span></div>' +
+        '<div><b>' + brl(p.tags_cents) + '</b><span>Fitas e vistorias</span></div>' +
+        '</div>';
       $('kpis').innerHTML = [
         kpi('Poitas cadastradas', n(apps.length), newApps + ' novas esperando contato'),
         kpi('Poitas ativas no app', n(d.moorings.active), n(d.moorings.total) + ' no total'),
         kpi('Aluguéis', n(done), n(b.nights) + ' noites'),
         kpi('Movimentado em aluguéis', brl(b.gmv_cents), 'o que os navegantes pagaram', true),
         kpi('Repassado aos donos', brl(b.owners_cents), '90% das diárias', true),
-        kpi('Receita BlueHarbor', brl(revenue), 'poitas, serviços, assinaturas e fitas', true),
         kpi('Serviços pagos', brl(s.gmv_cents), 'receita ' + brl(s.platform_cents), true),
         kpi('Usuários', n(d.people.users), n(d.people.users_30d) + ' nos últimos 30 dias'),
         kpi('Prestadores', n(d.people.providers), n(d.people.boats) + ' barcos cadastrados'),
