@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cadastre sua poita — BlueHarbor</title>
+  <meta name="description" content="Cadastre sua poita no BlueHarbor, em qualquer lugar do Brasil, e alugue as noites em que ela fica livre. Você recebe 90% de cada diária.">
+  <meta name="theme-color" content="#0A2342">
+  <link rel="canonical" href="https://blueharbor-ai.app/poita/">
+  <meta property="og:title" content="Cadastre sua poita no BlueHarbor">
+  <meta property="og:description" content="Alugue as noites em que sua poita fica livre. Você recebe 90% de cada diária.">
+  <meta property="og:image" content="https://blueharbor-ai.app/assets/og.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=9">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <style>
+    .legal-top { background: var(--abyss); color: #fff; padding: calc(18px + env(safe-area-inset-top)) 0 18px; }
+    .legal-top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .legal-top .brand { color: #fff; }
+    .legal-top a.back { color: #9FD0FF; font-weight: 700; text-decoration: none; }
+    .form { max-width: 680px; padding-block: 40px 72px; }
+    .form h1 { font-size: clamp(2rem, 6vw, 3rem); margin-bottom: 8px; }
+    .form .lead { color: var(--text-2); line-height: 1.6; margin-bottom: 24px; }
+    .form fieldset { border: 0; padding: 0; margin: 0 0 24px; display: grid; gap: 14px; }
+    .form legend { font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; }
+    .form label { display: grid; gap: 6px; font-weight: 600; font-size: .95rem; }
+    .form input, .form textarea { font: inherit; padding: 12px 14px; border: 1px solid rgba(10, 35, 66, .2); border-radius: 12px; background: #fff; color: var(--abyss); width: 100%; box-sizing: border-box; }
+    .form textarea { min-height: 90px; resize: vertical; }
+    .form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; }
+    .form .check input { width: auto; margin-top: 4px; }
+    .form .hint { color: var(--text-2); font-size: .85rem; font-weight: 400; }
+    #map { height: 320px; border-radius: 16px; border: 1px solid rgba(10, 35, 66, .2); }
+    .form .err { color: #B3261E; font-weight: 700; min-height: 1.2em; }
+    .done { background: #E8F4EC; border-radius: 16px; padding: 24px; }
+    .done .num { font-family: Fraunces, Georgia, serif; font-size: 2.6rem; color: var(--abyss); margin: 8px 0; }
+    @media (max-width: 560px) { .form .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="legal-top">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="BlueHarbor, início">
+        <img src="../assets/logo-mark.webp" alt="" width="20" height="31">
+        <span>BlueHarbor</span>
+      </a>
+      <a class="back" href="/">← Voltar ao site</a>
+    </div>
+  </header>
+  <main class="wrap form" id="conteudo">
+    <h1>Cadastre sua poita</h1>
+    <p class="lead">Em qualquer lugar do Brasil, sem precisar de conta. Alugue as noites em que sua poita fica livre: você recebe <b>90% de cada diária</b>, o BlueHarbor fica com 10% e cobra 5% do navegante. Só ativamos poitas autorizadas pela Capitania dos Portos.</p>
+
+    <form id="f" novalidate>
+      <fieldset>
+        <legend>Você</legend>
+        <label>Nome <input name="name" autocomplete="name" required></label>
+        <div class="row">
+          <label>WhatsApp com DDD <input name="whatsapp" type="tel" autocomplete="tel" placeholder="(12) 99999-9999" required></label>
+          <label>E-mail <span class="hint">opcional</span><input name="email" type="email" autocomplete="email"></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Onde está a poita</legend>
+        <span class="hint">Toque no mapa no lugar da poita (aproxime bem). Ou use sua localização se estiver nela.</span>
+        <div id="map" role="application" aria-label="Mapa para marcar a posição da poita"></div>
+        <div class="row">
+          <button type="button" class="btn btn--glass" id="here">Usar minha localização</button>
+          <span class="hint" id="pos">Posição ainda não marcada.</span>
+        </div>
+        <label>Praia ou lugar <input name="place" placeholder="Ex.: Saco da Capela, Ilhabela"></label>
+      </fieldset>
+      <fieldset>
+        <legend>A poita</legend>
+        <div class="row">
+          <label>Profundidade (m) <span class="hint">na maré baixa</span><input name="depth" inputmode="decimal"></label>
+          <label>Barco até (pés) <input name="len" inputmode="decimal"></label>
+        </div>
+        <label>Diária que você quer (R$) <input name="price" inputmode="decimal"></label>
+        <span class="hint" id="youget"></span>
+        <label class="check"><input type="checkbox" name="shore" checked> Fácil acesso a terra</label>
+        <label class="check"><input type="checkbox" name="doc"> Tenho o documento de autorização da Capitania dos Portos</label>
+        <label>Informações para o navegante <span class="hint">opcional</span><textarea name="desc" maxlength="600"></textarea></label>
+      </fieldset>
+      <label class="check"><input type="checkbox" name="consent"> Aceito que a equipe BlueHarbor fale comigo pelo WhatsApp sobre a poita, conforme a <a href="/privacidade/">política de privacidade</a>.</label>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn btn--sun btn--lg" type="submit" id="send">Cadastrar poita</button>
+    </form>
+
+    <div class="done" id="done" hidden>
+      <p><b>Poita cadastrada.</b> O número dela é:</p>
+      <p class="num" id="num"></p>
+      <p>Esse número segue a ordem em que os cadastros chegam. Guarde-o. Próximos passos:</p>
+      <ol>
+        <li>Nossa equipe fala com você pelo WhatsApp em até 2 dias úteis.</li>
+        <li>Conferimos o documento da Capitania e combinamos a vistoria.</li>
+        <li>Instalamos a fita com o número e o QR code na boia.</li>
+        <li>A poita aparece no app e começa a receber reservas; o dinheiro cai na sua conta.</li>
+      </ol>
+    </div>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+    (function () {
+      var URL = 'https://fqygdmwtijdaelsicwru.supabase.co';
+      var KEY = 'sb_publishable_dJqPkvoiXoHG4fgLROIl6w_kY2Oy828';
+      var form = document.getElementById('f');
+      var err = document.getElementById('err');
+      var pos = document.getElementById('pos');
+      var at = null, marker = null;
+      var map = L.map('map').setView([-15.5, -45], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+      L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', { maxZoom: 18, attribution: 'OpenSeaMap' }).addTo(map);
+      function put(lat, lng) {
+        at = { lat: lat, lng: lng };
+        if (marker) marker.setLatLng([lat, lng]); else marker = L.marker([lat, lng]).addTo(map);
+        pos.textContent = 'Marcada em ' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '.';
+      }
+      map.on('click', function (e) { put(e.latlng.lat, e.latlng.lng); });
+      document.getElementById('here').onclick = function () {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(function (p) {
+          put(p.coords.latitude, p.coords.longitude);
+          map.setView([p.coords.latitude, p.coords.longitude], 16);
+        }, function () { pos.textContent = 'Não deu para usar a localização. Marque no mapa.'; });
+      };
+      var num = function (v) { v = (v || '').trim().replace(',', '.'); return v === '' ? null : Number(v); };
+      var brl = function (c) { return (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); };
+      form.price.oninput = function () {
+        var p = num(form.price.value);
+        document.getElementById('youget').textContent = p ? 'Você recebe ' + brl(Math.round(p * 100) - Math.round(p * 100 * 0.10)) + ' por noite; o navegante paga ' + brl(Math.round(p * 100) + Math.round(p * 100 * 0.05)) + '.' : '';
+      };
+      form.onsubmit = function (e) {
+        e.preventDefault();
+        err.textContent = '';
+        var f = form;
+        if (f.name.value.trim().length < 2) return void (err.textContent = 'Informe seu nome.');
+        if (f.whatsapp.value.replace(/\D/g, '').length < 10) return void (err.textContent = 'Informe seu WhatsApp com DDD.');
+        if (!at) return void (err.textContent = 'Marque a posição da poita no mapa.');
+        if (!f.consent.checked) return void (err.textContent = 'Aceite o contato pelo WhatsApp para ativarmos a poita.');
+        var price = num(f.price.value);
+        var btn = document.getElementById('send');
+        btn.disabled = true; btn.textContent = 'Enviando…';
+        fetch(URL + '/rest/v1/rpc/register_mooring_application', {
+          method: 'POST',
+          headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            p_owner_name: f.name.value.trim(), p_whatsapp: f.whatsapp.value.trim(), p_lat: at.lat, p_lng: at.lng, p_consent: true,
+            p_email: f.email.value.trim() || null, p_place: f.place.value.trim() || null,
+            p_depth_m: num(f.depth.value), p_max_length_ft: num(f.len.value),
+            p_nightly_price_cents: price ? Math.round(price * 100) : null,
+            p_easy_shore_access: f.shore.checked, p_has_capitania_doc: f.doc.checked, p_description: f.desc.value.trim() || null
+          })
+        }).then(function (r) {
+          return r.json().catch(function () { return null; }).then(function (b) {
+            if (!r.ok || typeof b !== 'string') throw new Error((b && b.message && !/function|schema/i.test(b.message)) ? b.message : 'Não foi possível cadastrar agora. Tente de novo em instantes.');
+            return b;
+          });
+        }).then(function (n) {
+          form.hidden = true;
+          document.getElementById('num').textContent = n;
+          document.getElementById('done').hidden = false;
+          window.scrollTo(0, 0);
+        }).catch(function (x) {
+          err.textContent = x.message;
+          btn.disabled = false; btn.textContent = 'Cadastrar poita';
+        });
+      };
+    })();
+  </script>
+</body>
+</html>
