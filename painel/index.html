@@ -134,7 +134,7 @@
       $('err').textContent = '';
       if (!/@/.test(email)) return void ($('err').textContent = 'Informe o e-mail.');
       $('send').disabled = true;
-      sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true } }).then(function (r) {
+      sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + '/painel/' } }).then(function (r) {
         $('send').disabled = false;
         if (r.error) return void ($('err').textContent = r.error.message);
         $('step1').hidden = true; $('step2').hidden = false; $('code').focus();
@@ -148,6 +148,8 @@
         load();
       });
     };
+    // The e-mail may bring a sign-in link instead of the code: opening it lands here signed in (in any tab).
+    sb.auth.onAuthStateChange(function (ev) { if (ev === 'SIGNED_IN') load(); });
     $('out').onclick = function () { sb.auth.signOut().then(function () { location.reload(); }); };
     $('reload').onclick = load;
     $('filter').onchange = renderApps;
