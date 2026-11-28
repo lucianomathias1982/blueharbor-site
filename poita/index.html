@@ -31,15 +31,21 @@
     .form label { display: grid; gap: 6px; font-weight: 600; font-size: .95rem; }
     .form input, .form textarea { font: inherit; padding: 12px 14px; border: 1px solid rgba(10, 35, 66, .2); border-radius: 12px; background: #fff; color: var(--abyss); width: 100%; box-sizing: border-box; }
     .form textarea { min-height: 90px; resize: vertical; }
-    .form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    .form .inline { display: flex; gap: 12px; align-items: flex-end; }
+    .form .inline label { flex: 1; }
+    .form .inline .btn { flex: none; height: 48px; padding: 0 22px; white-space: nowrap; }
+    .form .inline .hint { align-self: center; }
+    .form input { height: 48px; }
+    .form label .hint { display: block; margin-top: 2px; }
     .form .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; }
-    .form .check input { width: auto; margin-top: 4px; }
+    .form .check input { width: auto; height: auto; margin-top: 4px; }
     .form .hint { color: var(--text-2); font-size: .85rem; font-weight: 400; }
     #map { height: 320px; border-radius: 16px; border: 1px solid rgba(10, 35, 66, .2); }
     .form .err { color: #B3261E; font-weight: 700; min-height: 1.2em; }
     .done { background: #E8F4EC; border-radius: 16px; padding: 24px; }
     .done .num { font-family: Fraunces, Georgia, serif; font-size: 2.6rem; color: var(--abyss); margin: 8px 0; }
-    @media (max-width: 560px) { .form .row { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) { .form .row { grid-template-columns: 1fr; } .form .inline { flex-wrap: wrap; } .form .inline .btn { width: 100%; } }
   </style>
 </head>
 <body>
@@ -61,21 +67,19 @@
         <legend>Você</legend>
         <label>Nome <input name="name" autocomplete="name" required></label>
         <div class="row">
-          <label>WhatsApp com DDD <input name="whatsapp" type="tel" autocomplete="tel" placeholder="(12) 99999-9999" required></label>
-          <label>E-mail <input name="email" type="email" autocomplete="email" required><span class="hint" id="email-hint">Mandamos um código para confirmar.</span></label>
-        </div>
-        <div class="row" id="email-step">
-          <button type="button" class="btn btn--sun" id="send-code">Enviar código para o e-mail</button>
-          <span></span>
-        </div>
-        <div class="row" id="code-step" hidden>
-          <label>Código do e-mail <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></label>
-          <button type="button" class="btn btn--sun" id="confirm-code" style="align-self:end">Confirmar</button>
-        </div>
-        <div class="row">
           <label>CPF ou CNPJ <input name="doc" inputmode="numeric" maxlength="18" required><span class="hint" id="doc-hint"></span></label>
-          <label>Telefone <span class="hint">se for outro</span><input name="phone" type="tel" autocomplete="tel"></label>
+          <label>WhatsApp com DDD <input name="whatsapp" type="tel" autocomplete="tel" placeholder="(12) 99999-9999" required></label>
         </div>
+        <label>Telefone (opcional, se for outro) <input name="phone" type="tel" autocomplete="tel"></label>
+        <div class="inline">
+          <label>E-mail <input name="email" type="email" autocomplete="email" required></label>
+          <button type="button" class="btn btn--sun" id="send-code">Enviar código</button>
+        </div>
+        <div class="inline" id="code-step" hidden>
+          <label>Código que chegou no e-mail <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></label>
+          <button type="button" class="btn btn--sun" id="confirm-code">Confirmar</button>
+        </div>
+        <span class="hint" id="email-hint">Mandamos um código para confirmar o e-mail.</span>
       </fieldset>
       <fieldset>
         <legend>Seu endereço</legend>
@@ -98,7 +102,7 @@
         <span class="hint">O dinheiro das diárias cai aqui. Quando o pagamento for ligado, a página do Stripe já vem com estes dados.</span>
         <label class="check"><input type="radio" name="pay" value="pix" checked> Chave PIX</label>
         <label class="check"><input type="radio" name="pay" value="conta"> Conta no banco</label>
-        <div id="pay-pix"><label>Chave PIX <span class="hint">CPF, CNPJ, e-mail, telefone ou chave aleatória</span><input name="pix"></label></div>
+        <div id="pay-pix"><label>Chave PIX <input name="pix" placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória"></label></div>
         <div id="pay-conta" hidden>
           <label>Banco <input name="bank" placeholder="Ex.: 001 Banco do Brasil"></label>
           <div class="row">
@@ -114,7 +118,7 @@
         <legend>Onde está a poita</legend>
         <span class="hint">Toque no mapa no lugar da poita (aproxime bem). Ou use sua localização se estiver nela.</span>
         <div id="map" role="application" aria-label="Mapa para marcar a posição da poita"></div>
-        <div class="row">
+        <div class="inline">
           <button type="button" class="btn btn--sun" id="here">Usar minha localização</button>
           <span class="hint" id="pos">Posição ainda não marcada.</span>
         </div>
@@ -123,14 +127,14 @@
       <fieldset>
         <legend>A poita</legend>
         <div class="row">
-          <label>Profundidade (m) <span class="hint">na maré baixa</span><input name="depth" inputmode="decimal"></label>
+          <label>Profundidade na maré baixa (m) <input name="depth" inputmode="decimal"></label>
           <label>Barco até (pés) <input name="len" inputmode="decimal"></label>
         </div>
         <label>Diária que você quer (R$) <input name="price" inputmode="decimal"></label>
         <span class="hint" id="youget"></span>
         <label class="check"><input type="checkbox" name="shore" checked> Fácil acesso a terra</label>
         <label class="check"><input type="checkbox" name="capitania"> Tenho o documento de autorização da Capitania dos Portos</label>
-        <label>Informações para o navegante <span class="hint">opcional</span><textarea name="desc" maxlength="600"></textarea></label>
+        <label>Informações para o navegante (opcional) <textarea name="desc" maxlength="600"></textarea></label>
       </fieldset>
       <label class="check"><input type="checkbox" name="consent"> Aceito que a equipe BlueHarbor fale comigo pelo WhatsApp sobre a poita, conforme a <a href="/privacidade/">política de privacidade</a>.</label>
       <p class="err" id="err" role="alert"></p>
@@ -162,7 +166,7 @@
       var emailHint = document.getElementById('email-hint');
       form.email.oninput = function () {
         if (!emailOk && document.getElementById('code-step').hidden) return;
-        emailOk = false; document.getElementById('email-step').hidden = false; document.getElementById('code-step').hidden = true;
+        emailOk = false; document.getElementById('send-code').hidden = false; document.getElementById('code-step').hidden = true;
         emailHint.textContent = 'Mandamos um código para confirmar.';
       };
       document.getElementById('send-code').onclick = function () {
@@ -173,12 +177,12 @@
           b.disabled = false;
           if (r.error) { emailHint.textContent = /rate|seconds/i.test(r.error.message) ? 'Espere um minuto para pedir outro código.' : r.error.message; return; }
           emailHint.textContent = 'Código enviado para ' + e + '. Veja também o spam.';
-          document.getElementById('email-step').hidden = true; document.getElementById('code-step').hidden = false; form.code.focus();
+          document.getElementById('send-code').hidden = true; document.getElementById('code-step').hidden = false; form.code.focus();
         });
       };
       document.getElementById('confirm-code').onclick = function () {
         sb.auth.verifyOtp({ email: form.email.value.trim().toLowerCase(), token: form.code.value.trim(), type: 'email' }).then(function (r) {
-          if (r.error) { emailHint.textContent = 'Código inválido ou vencido. Peça outro.'; document.getElementById('email-step').hidden = false; return; }
+          if (r.error) { emailHint.textContent = 'Código inválido ou vencido. Peça outro.'; document.getElementById('send-code').hidden = false; return; }
           emailOk = true; emailHint.textContent = 'E-mail confirmado.';
           document.getElementById('code-step').hidden = true;
         });
