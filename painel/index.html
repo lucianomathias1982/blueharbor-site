@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Painel BlueHarbor</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0A2342">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <style>
+    :root { --abyss: #0A2342; --sea: #1C6DD0; --foam: #F3F8FD; --line: #D9E5F2; --text: #0B1B2E; --text2: #4A5A70; --sun: #F29A4A; --ok: #1E8E3E; --bad: #C62828; --warn: #B26A00; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--foam); color: var(--text); }
+    header { background: var(--abyss); color: #fff; padding: calc(14px + env(safe-area-inset-top)) 16px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    header b { font-family: Fraunces, Georgia, serif; font-size: 1.3rem; font-weight: 600; }
+    header button { background: transparent; color: #9FD0FF; border: 0; font: inherit; font-weight: 700; cursor: pointer; }
+    main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 64px; }
+    h2 { font-family: Fraunces, Georgia, serif; font-weight: 500; font-size: 1.5rem; margin: 32px 0 12px; }
+    .muted { color: var(--text2); font-size: .9rem; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+    .login { max-width: 420px; margin: 48px auto; display: grid; gap: 12px; }
+    .login input { font: inherit; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; width: 100%; }
+    .btn { font: inherit; font-weight: 700; padding: 12px 18px; border-radius: 999px; border: 0; background: var(--sea); color: #fff; cursor: pointer; }
+    .btn.ghost { background: transparent; color: var(--sea); border: 1px solid var(--line); }
+    .err { color: var(--bad); font-weight: 600; min-height: 1.2em; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .kpi .v { font-family: Fraunces, Georgia, serif; font-size: 1.9rem; color: var(--abyss); margin-top: 4px; }
+    .kpi .l { font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text2); }
+    .kpi .s { font-size: .85rem; color: var(--text2); margin-top: 2px; }
+    .kpi.money .v { color: var(--ok); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text2); }
+    .scroll { overflow-x: auto; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; font-weight: 700; }
+    .s-novo { background: #E7F1FB; color: var(--sea); } .s-em_contato { background: #FFF3E0; color: var(--warn); }
+    .s-aprovado { background: #E5F4E4; color: var(--ok); } .s-recusado { background: #FBEBEB; color: var(--bad); }
+    select, textarea { font: inherit; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+    textarea { width: 100%; min-height: 54px; }
+    #map { height: 380px; border-radius: 16px; border: 1px solid var(--line); }
+    .bars { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding-top: 8px; }
+    .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .75rem; color: var(--text2); }
+    .bar i { display: block; width: 100%; background: var(--sea); border-radius: 6px 6px 0 0; min-height: 2px; }
+    .note { background: #FFF8E1; border: 1px solid #F4D58D; border-radius: 12px; padding: 10px 14px; font-size: .9rem; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <b>Painel BlueHarbor</b>
+    <span class="row"><span id="who" class="muted" style="color:#C5D3E6"></span><button id="out" hidden>Sair</button></span>
+  </header>
+  <main>
+    <section id="login" class="login card" hidden>
+      <h2 style="margin-top:0">Entrar</h2>
+      <p class="muted">Só para a equipe BlueHarbor. Mandamos um código de 6 dígitos para o seu e-mail.</p>
+      <div id="step1" class="login" style="margin:0">
+        <input id="email" type="email" autocomplete="email" placeholder="seu e-mail @blueharbor-ai.app">
+        <button class="btn" id="send">Enviar código</button>
+      </div>
+      <div id="step2" class="login" style="margin:0" hidden>
+        <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Código de 6 dígitos">
+        <button class="btn" id="verify">Entrar</button>
+        <button class="btn ghost" id="back">Trocar e-mail</button>
+      </div>
+      <p class="err" id="err" role="alert"></p>
+    </section>
+
+    <section id="app" hidden>
+      <div class="row" style="justify-content:space-between">
+        <p class="muted" id="when"></p>
+        <button class="btn ghost" id="reload">Atualizar</button>
+      </div>
+      <p class="note">Números do servidor de produção. Enquanto o pagamento real não estiver ligado (CNPJ e conta Stripe), aluguéis e receita ficam zerados; o app de teste usa dados de demonstração.</p>
+
+      <h2>Resumo</h2>
+      <div class="kpis" id="kpis"></div>
+
+      <h2>Receita BlueHarbor por mês</h2>
+      <div class="card"><div class="bars" id="bars"></div><p class="muted" id="bars-note"></p></div>
+
+      <h2>Cadastros de poita</h2>
+      <div class="row" style="margin-bottom:10px">
+        <select id="filter"><option value="">Todos os andamentos</option><option value="novo">Novos</option><option value="em_contato">Em contato</option><option value="aprovado">Aprovados</option><option value="recusado">Recusados</option></select>
+        <button class="btn ghost" id="csv">Baixar planilha (CSV)</button>
+        <span class="muted">Link para os donos: <a href="/poita/" target="_blank">blueharbor-ai.app/poita</a></span>
+      </div>
+      <div id="map"></div>
+      <div class="card scroll" style="margin-top:12px"><table id="apps"></table></div>
+
+      <h2>Aluguéis de poita</h2>
+      <div class="grid2">
+        <div class="card"><table id="bstatus"></table></div>
+        <div class="card"><table id="money"></table></div>
+      </div>
+      <div class="card scroll" style="margin-top:12px"><table id="recent"></table></div>
+
+      <h2>Serviços, pagamentos e assinaturas</h2>
+      <div class="grid2">
+        <div class="card"><table id="services"></table></div>
+        <div class="card"><table id="payments"></table></div>
+      </div>
+      <div class="card" style="margin-top:12px"><table id="subs"></table></div>
+
+      <h2>Pessoas e comunidade</h2>
+      <div class="card"><table id="people"></table></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+  (function () {
+    var sb = supabase.createClient('https://fqygdmwtijdaelsicwru.supabase.co', 'sb_publishable_dJqPkvoiXoHG4fgLROIl6w_kY2Oy828');
+    var $ = function (id) { return document.getElementById(id); };
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    var brl = function (c) { return ((c || 0) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); };
+    var n = function (x) { return (x || 0).toLocaleString('pt-BR'); };
+    var date = function (iso) { return iso ? new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''; };
+    var STATUS = { novo: 'Novo', em_contato: 'Em contato', aprovado: 'Aprovado', recusado: 'Recusado' };
+    var data = null, map = null, layer = null;
+
+    function show(logged) { $('login').hidden = logged; $('app').hidden = !logged; $('out').hidden = !logged; }
+
+    $('send').onclick = function () {
+      var email = $('email').value.trim().toLowerCase();
+      $('err').textContent = '';
+      if (!/@/.test(email)) return void ($('err').textContent = 'Informe o e-mail.');
+      $('send').disabled = true;
+      sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true } }).then(function (r) {
+        $('send').disabled = false;
+        if (r.error) return void ($('err').textContent = r.error.message);
+        $('step1').hidden = true; $('step2').hidden = false; $('code').focus();
+      });
+    };
+    $('back').onclick = function () { $('step2').hidden = true; $('step1').hidden = false; };
+    $('verify').onclick = function () {
+      $('err').textContent = '';
+      sb.auth.verifyOtp({ email: $('email').value.trim().toLowerCase(), token: $('code').value.trim(), type: 'email' }).then(function (r) {
+        if (r.error) return void ($('err').textContent = 'Código inválido ou vencido.');
+        load();
+      });
+    };
+    $('out').onclick = function () { sb.auth.signOut().then(function () { location.reload(); }); };
+    $('reload').onclick = load;
+    $('filter').onchange = renderApps;
+
+    function load() {
+      sb.auth.getSession().then(function (s) {
+        var sess = s.data.session;
+        if (!sess) return show(false);
+        $('who').textContent = sess.user.email;
+        sb.rpc('staff_dashboard').then(function (r) {
+          if (r.error) {
+            show(false);
+            $('err').textContent = /equipe/.test(r.error.message) ? 'Este e-mail não está na equipe BlueHarbor.' : r.error.message;
+            return;
+          }
+          data = r.data; show(true); render();
+        });
+      });
+    }
+
+    function kpi(label, value, sub, money) {
+      return '<div class="card kpi' + (money ? ' money' : '') + '"><div class="l">' + label + '</div><div class="v">' + value + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>';
+    }
+    function rows(obj, labels) {
+      var keys = Object.keys(obj || {});
+      if (!keys.length) return '<tr><td class="muted">Nada ainda.</td></tr>';
+      return keys.map(function (k) { return '<tr><td>' + esc((labels && labels[k]) || k) + '</td><td style="text-align:right">' + n(obj[k]) + '</td></tr>'; }).join('');
+    }
+
+    function render() {
+      var d = data, b = d.bookings, s = d.services, p = d.payments, apps = d.applications || [];
+      var revenue = (b.platform_cents || 0) + (s.platform_cents || 0) + (p.subscriptions_cents || 0) + (p.tags_cents || 0);
+      var newApps = apps.filter(function (a) { return a.status === 'novo'; }).length;
+      var done = (b.by_status.confirmada || 0) + (b.by_status.concluida || 0);
+      $('when').textContent = 'Atualizado em ' + date(d.generated_at);
+      $('kpis').innerHTML = [
+        kpi('Poitas cadastradas', n(apps.length), newApps + ' novas esperando contato'),
+        kpi('Poitas ativas no app', n(d.moorings.active), n(d.moorings.total) + ' no total'),
+        kpi('Aluguéis', n(done), n(b.nights) + ' noites'),
+        kpi('Movimentado em aluguéis', brl(b.gmv_cents), 'o que os navegantes pagaram', true),
+        kpi('Repassado aos donos', brl(b.owners_cents), '90% das diárias', true),
+        kpi('Receita BlueHarbor', brl(revenue), 'poitas, serviços, assinaturas e fitas', true),
+        kpi('Serviços pagos', brl(s.gmv_cents), 'receita ' + brl(s.platform_cents), true),
+        kpi('Usuários', n(d.people.users), n(d.people.users_30d) + ' nos últimos 30 dias'),
+        kpi('Prestadores', n(d.people.providers), n(d.people.boats) + ' barcos cadastrados'),
+        kpi('Comunidade', n(d.people.groups) + ' grupos', n(d.people.group_members) + ' participantes')
+      ].join('');
+
+      var months = b.by_month || [];
+      var max = Math.max.apply(null, months.map(function (m) { return m.platform_cents || 0; }).concat([1]));
+      $('bars').innerHTML = months.length ? months.map(function (m) {
+        return '<div class="bar"><span>' + brl(m.platform_cents) + '</span><i style="height:' + Math.round(140 * (m.platform_cents || 0) / max) + 'px"></i><span>' + m.month.slice(5) + '/' + m.month.slice(2, 4) + '</span></div>';
+      }).join('') : '<p class="muted">Sem aluguéis pagos ainda.</p>';
+      $('bars-note').textContent = 'Comissão do dono (10%) mais a taxa do navegante (5%) dos aluguéis confirmados, por mês da reserva.';
+
+      $('bstatus').innerHTML = '<tr><th>Aluguéis por andamento</th><th></th></tr>' + rows(b.by_status, { pendente: 'Esperando pagamento', confirmada: 'Confirmados', concluida: 'Concluídos', cancelada: 'Cancelados' });
+      $('money').innerHTML = '<tr><th>Dinheiro</th><th></th></tr>' +
+        '<tr><td>Pago pelos navegantes (aluguéis)</td><td style="text-align:right">' + brl(b.gmv_cents) + '</td></tr>' +
+        '<tr><td>Repassado aos donos</td><td style="text-align:right">' + brl(b.owners_cents) + '</td></tr>' +
+        '<tr><td>Ficou com o BlueHarbor (aluguéis)</td><td style="text-align:right">' + brl(b.platform_cents) + '</td></tr>' +
+        '<tr><td>Estornado</td><td style="text-align:right">' + brl(p.refunded_cents) + '</td></tr>';
+      $('recent').innerHTML = '<tr><th>Reserva</th><th>Poita</th><th>Check-in</th><th>Noites</th><th>Andamento</th><th>Total</th><th>Dono</th><th>BlueHarbor</th></tr>' +
+        ((b.recent || []).map(function (r) {
+          return '<tr><td>' + date(r.created_at) + '</td><td>' + esc(r.number) + '</td><td>' + esc(r.checkin) + '</td><td>' + r.nights + '</td><td>' + esc(r.status) + '</td><td>' + brl(r.total_cents) + '</td><td>' + brl(r.payee_cents) + '</td><td>' + brl(r.platform_cents) + '</td></tr>';
+        }).join('') || '<tr><td colspan="8" class="muted">Nenhum aluguel ainda.</td></tr>');
+
+      $('services').innerHTML = '<tr><th>Pedidos de serviço</th><th></th></tr>' + rows(s.by_status, { aberto: 'Abertos', orcado: 'Orçados', aceito: 'Aceitos', pago: 'Pagos', concluido: 'Concluídos', cancelado: 'Cancelados' }) +
+        '<tr><td><b>Receita BlueHarbor (serviços)</b></td><td style="text-align:right"><b>' + brl(s.platform_cents) + '</b></td></tr>';
+      var byMethod = p.by_method || {};
+      $('payments').innerHTML = '<tr><th>Pagamentos</th><th></th></tr>' + rows(p.by_status, { pendente: 'Pendentes', pago: 'Pagos', estornado: 'Estornados', falhou: 'Falharam', cancelado: 'Cancelados' }) +
+        Object.keys(byMethod).map(function (k) { return '<tr><td>Recebido por ' + esc(k) + '</td><td style="text-align:right">' + brl(byMethod[k]) + '</td></tr>'; }).join('') +
+        '<tr><td>Assinaturas Pro</td><td style="text-align:right">' + brl(p.subscriptions_cents) + '</td></tr>' +
+        '<tr><td>Fitas e vistorias de poita</td><td style="text-align:right">' + brl(p.tags_cents) + '</td></tr>';
+      $('subs').innerHTML = '<tr><th>Assinaturas (tipo:situação)</th><th></th></tr>' + rows(d.subscriptions);
+      $('people').innerHTML = '<tr><th>Pessoas e uso</th><th></th></tr>' +
+        rows({ 'Usuários': d.people.users, 'Novos nos últimos 30 dias': d.people.users_30d, 'Prestadores': d.people.providers, 'Barcos': d.people.boats, 'Grupos': d.people.groups, 'Participantes de grupos': d.people.group_members, 'Perigos relatados': d.people.hazards }) +
+        Object.keys(d.people.sos || {}).map(function (k) { return '<tr><td>SOS ' + esc(k) + '</td><td style="text-align:right">' + n(d.people.sos[k]) + '</td></tr>'; }).join('');
+      renderApps();
+    }
+
+    function renderApps() {
+      var f = $('filter').value;
+      var apps = (data.applications || []).filter(function (a) { return !f || a.status === f; });
+      $('apps').innerHTML = '<tr><th>Número</th><th>Quando</th><th>Dono</th><th>Onde</th><th>Poita</th><th>Diária</th><th>Andamento e anotações</th></tr>' +
+        (apps.map(function (a) {
+          var wa = String(a.whatsapp || '').replace(/\D/g, '');
+          if (wa.length <= 11) wa = '55' + wa;
+          return '<tr data-id="' + a.id + '"><td><b>' + esc(a.number) + '</b></td><td>' + date(a.created_at) + '</td>' +
+            '<td>' + esc(a.owner_name) + (a.doc_number ? '<br><span class="muted">' + (a.doc_number.length === 11 ? 'CPF ' : 'CNPJ ') + esc(a.doc_number) + '</span>' : '') +
+            '<br><a href="https://wa.me/' + wa + '" target="_blank" rel="noopener">' + esc(a.whatsapp) + '</a>' + (a.phone ? '<br>' + esc(a.phone) : '') + (a.email ? '<br>' + esc(a.email) : '') +
+            (a.cep ? '<br><span class="muted">' + esc([a.street, a.street_number].filter(Boolean).join(', ')) + (a.complement ? ' – ' + esc(a.complement) : '') + '<br>' + esc([a.district, a.city, a.uf].filter(Boolean).join(', ')) + ' · CEP ' + esc(a.cep) + '</span>' : '') +
+            (a.pix_key ? '<br>PIX: ' + esc(a.pix_key) : a.bank_account ? '<br>' + esc(a.bank_name) + ' ag. ' + esc(a.bank_agency) + ' c/' + (a.bank_account_type === 'poupanca' ? 'p ' : 'c ') + esc(a.bank_account) + (a.account_holder ? ' (' + esc(a.account_holder) + ')' : '') : '') + '</td>' +
+            '<td>' + esc(a.place || '') + '<br><a href="https://www.google.com/maps?q=' + a.lat + ',' + a.lng + '" target="_blank" rel="noopener">' + Number(a.lat).toFixed(5) + ', ' + Number(a.lng).toFixed(5) + '</a></td>' +
+            '<td>' + (a.depth_m ? a.depth_m + ' m' : '–') + ' · ' + (a.max_length_ft ? a.max_length_ft + ' pés' : '–') + '<br>' + (a.has_capitania_doc ? 'Tem documento' : 'Sem documento') + (a.easy_shore_access ? ' · fácil acesso' : '') + (a.description ? '<br><span class="muted">' + esc(a.description) + '</span>' : '') + '</td>' +
+            '<td>' + (a.nightly_price_cents ? brl(a.nightly_price_cents) : '–') + '</td>' +
+            '<td><span class="pill s-' + a.status + '">' + STATUS[a.status] + '</span><br><select class="st">' +
+            Object.keys(STATUS).map(function (k) { return '<option value="' + k + '"' + (k === a.status ? ' selected' : '') + '>' + STATUS[k] + '</option>'; }).join('') +
+            '</select><textarea class="nt" placeholder="Anotação da equipe">' + esc(a.staff_notes || '') + '</textarea><button class="btn ghost sv">Salvar</button></td></tr>';
+        }).join('') || '<tr><td colspan="7" class="muted">Nenhum cadastro ainda. Mande o link blueharbor-ai.app/poita para os donos.</td></tr>');
+      Array.prototype.forEach.call(document.querySelectorAll('#apps .sv'), function (btn) {
+        btn.onclick = function () {
+          var tr = btn.closest('tr');
+          btn.disabled = true; btn.textContent = 'Salvando…';
+          sb.rpc('update_mooring_application', { p_id: tr.dataset.id, p_status: tr.querySelector('.st').value, p_notes: tr.querySelector('.nt').value }).then(function (r) {
+            btn.disabled = false;
+            if (r.error) { btn.textContent = 'Erro: tente de novo'; return; }
+            btn.textContent = 'Salvo';
+            load();
+          });
+        };
+      });
+      if (!map) {
+        map = L.map('map').setView([-15.5, -45], 4);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+      }
+      if (layer) layer.remove();
+      layer = L.layerGroup(apps.map(function (a) {
+        return L.marker([a.lat, a.lng]).bindPopup('<b>' + esc(a.number) + '</b><br>' + esc(a.owner_name) + '<br>' + esc(a.place || '') + '<br>' + STATUS[a.status]);
+      })).addTo(map);
+      if (apps.length) map.fitBounds(L.latLngBounds(apps.map(function (a) { return [a.lat, a.lng]; })).pad(0.3), { maxZoom: 13 });
+    }
+
+    $('csv').onclick = function () {
+      var cols = ['number', 'created_at', 'status', 'owner_name', 'doc_number', 'whatsapp', 'phone', 'email', 'cep', 'street', 'street_number', 'complement', 'district', 'city', 'uf', 'pix_key', 'bank_name', 'bank_agency', 'bank_account', 'bank_account_type', 'account_holder', 'place', 'lat', 'lng', 'depth_m', 'max_length_ft', 'nightly_price_cents', 'has_capitania_doc', 'easy_shore_access', 'description', 'staff_notes'];
+      var lines = [cols.join(';')].concat((data.applications || []).map(function (a) {
+        return cols.map(function (c) { return '"' + String(a[c] == null ? '' : a[c]).replace(/"/g, '""') + '"'; }).join(';');
+      }));
+      var blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob); link.download = 'cadastros-de-poita.csv'; link.click();
+    };
+
+    load();
+  })();
+  </script>
+</body>
+</html>

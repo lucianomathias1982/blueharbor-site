@@ -61,7 +61,52 @@
         <label>Nome <input name="name" autocomplete="name" required></label>
         <div class="row">
           <label>WhatsApp com DDD <input name="whatsapp" type="tel" autocomplete="tel" placeholder="(12) 99999-9999" required></label>
-          <label>E-mail <span class="hint">opcional</span><input name="email" type="email" autocomplete="email"></label>
+          <label>E-mail <input name="email" type="email" autocomplete="email" required><span class="hint" id="email-hint">Mandamos um código para confirmar.</span></label>
+        </div>
+        <div class="row" id="email-step">
+          <button type="button" class="btn btn--glass" id="send-code">Enviar código para o e-mail</button>
+          <span></span>
+        </div>
+        <div class="row" id="code-step" hidden>
+          <label>Código do e-mail <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></label>
+          <button type="button" class="btn btn--sun" id="confirm-code" style="align-self:end">Confirmar</button>
+        </div>
+        <div class="row">
+          <label>CPF ou CNPJ <input name="doc" inputmode="numeric" maxlength="18" required><span class="hint" id="doc-hint"></span></label>
+          <label>Telefone <span class="hint">se for outro</span><input name="phone" type="tel" autocomplete="tel"></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Seu endereço</legend>
+        <div class="row">
+          <label>CEP <input name="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" required><span class="hint" id="cep-hint"></span></label>
+          <label>UF <input name="uf" maxlength="2" autocomplete="address-level1"></label>
+        </div>
+        <label>Rua <input name="street" autocomplete="address-line1"></label>
+        <div class="row">
+          <label>Número <input name="number"></label>
+          <label>Complemento <input name="complement" autocomplete="address-line2"></label>
+        </div>
+        <div class="row">
+          <label>Bairro <input name="district"></label>
+          <label>Cidade <input name="city" autocomplete="address-level2"></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Para receber</legend>
+        <span class="hint">O dinheiro das diárias cai aqui. Quando o pagamento for ligado, a página do Stripe já vem com estes dados.</span>
+        <label class="check"><input type="radio" name="pay" value="pix" checked> Chave PIX</label>
+        <label class="check"><input type="radio" name="pay" value="conta"> Conta no banco</label>
+        <div id="pay-pix"><label>Chave PIX <span class="hint">CPF, CNPJ, e-mail, telefone ou chave aleatória</span><input name="pix"></label></div>
+        <div id="pay-conta" hidden>
+          <label>Banco <input name="bank" placeholder="Ex.: 001 Banco do Brasil"></label>
+          <div class="row">
+            <label>Agência <input name="agency" inputmode="numeric"></label>
+            <label>Conta com dígito <input name="account" inputmode="numeric"></label>
+          </div>
+          <label class="check"><input type="radio" name="acctype" value="corrente" checked> Corrente</label>
+          <label class="check"><input type="radio" name="acctype" value="poupanca"> Poupança</label>
+          <label>Titular da conta <input name="holder"></label>
         </div>
       </fieldset>
       <fieldset>
@@ -83,7 +128,7 @@
         <label>Diária que você quer (R$) <input name="price" inputmode="decimal"></label>
         <span class="hint" id="youget"></span>
         <label class="check"><input type="checkbox" name="shore" checked> Fácil acesso a terra</label>
-        <label class="check"><input type="checkbox" name="doc"> Tenho o documento de autorização da Capitania dos Portos</label>
+        <label class="check"><input type="checkbox" name="capitania"> Tenho o documento de autorização da Capitania dos Portos</label>
         <label>Informações para o navegante <span class="hint">opcional</span><textarea name="desc" maxlength="600"></textarea></label>
       </fieldset>
       <label class="check"><input type="checkbox" name="consent"> Aceito que a equipe BlueHarbor fale comigo pelo WhatsApp sobre a poita, conforme a <a href="/privacidade/">política de privacidade</a>.</label>
@@ -104,11 +149,39 @@
     </div>
   </main>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script>
     (function () {
       var URL = 'https://fqygdmwtijdaelsicwru.supabase.co';
       var KEY = 'sb_publishable_dJqPkvoiXoHG4fgLROIl6w_kY2Oy828';
       var form = document.getElementById('f');
+      // E-mail confirmado com código (cria a conta BlueHarbor da pessoa; o cadastro já nasce ligado a ela).
+      var sb = supabase.createClient(URL, KEY, { auth: { persistSession: false, autoRefreshToken: false, storageKey: 'bh-poita' } });
+      var emailOk = false;
+      var emailHint = document.getElementById('email-hint');
+      form.email.oninput = function () {
+        if (!emailOk && document.getElementById('code-step').hidden) return;
+        emailOk = false; document.getElementById('email-step').hidden = false; document.getElementById('code-step').hidden = true;
+        emailHint.textContent = 'Mandamos um código para confirmar.';
+      };
+      document.getElementById('send-code').onclick = function () {
+        var e = form.email.value.trim().toLowerCase();
+        if (!/^\S+@\S+\.\S+$/.test(e)) { emailHint.textContent = 'Informe um e-mail válido.'; return; }
+        var b = this; b.disabled = true; emailHint.textContent = 'Enviando…';
+        sb.auth.signInWithOtp({ email: e, options: { shouldCreateUser: true } }).then(function (r) {
+          b.disabled = false;
+          if (r.error) { emailHint.textContent = /rate|seconds/i.test(r.error.message) ? 'Espere um minuto para pedir outro código.' : r.error.message; return; }
+          emailHint.textContent = 'Código enviado para ' + e + '. Veja também o spam.';
+          document.getElementById('email-step').hidden = true; document.getElementById('code-step').hidden = false; form.code.focus();
+        });
+      };
+      document.getElementById('confirm-code').onclick = function () {
+        sb.auth.verifyOtp({ email: form.email.value.trim().toLowerCase(), token: form.code.value.trim(), type: 'email' }).then(function (r) {
+          if (r.error) { emailHint.textContent = 'Código inválido ou vencido. Peça outro.'; document.getElementById('email-step').hidden = false; return; }
+          emailOk = true; emailHint.textContent = 'E-mail confirmado.';
+          document.getElementById('code-step').hidden = true;
+        });
+      };
       var err = document.getElementById('err');
       var pos = document.getElementById('pos');
       var at = null, marker = null;
@@ -128,6 +201,44 @@
           map.setView([p.coords.latitude, p.coords.longitude], 16);
         }, function () { pos.textContent = 'Não deu para usar a localização. Marque no mapa.'; });
       };
+      var dig = function (v) { return (v || '').replace(/\D/g, ''); };
+      function validCpf(c) {
+        if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+        var chk = function (n) { var s = 0; for (var i = 0; i < n; i++) s += Number(c[i]) * (n + 1 - i); var r = (s * 10) % 11; return r === 10 ? 0 : r; };
+        return chk(9) === Number(c[9]) && chk(10) === Number(c[10]);
+      }
+      function validCnpj(c) {
+        if (c.length !== 14 || /^(\d)\1{13}$/.test(c)) return false;
+        var chk = function (n) { var w = n === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2]; var s = 0; for (var i = 0; i < n; i++) s += Number(c[i]) * w[i]; var r = s % 11; return r < 2 ? 0 : 11 - r; };
+        return chk(12) === Number(c[12]) && chk(13) === Number(c[13]);
+      }
+      var validDoc = function (v) { var d = dig(v); return d.length === 11 ? validCpf(d) : d.length === 14 ? validCnpj(d) : false; };
+      form.doc.oninput = function () {
+        var d = dig(form.doc.value).slice(0, 14);
+        form.doc.value = d.length <= 11
+          ? d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+          : d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2');
+        document.getElementById('doc-hint').textContent = d.length >= 11 && !validDoc(d) ? 'CPF ou CNPJ inválido: confira os números.' : '';
+      };
+      form.cep.oninput = function () {
+        var d = dig(form.cep.value).slice(0, 8);
+        form.cep.value = d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d;
+        var hint = document.getElementById('cep-hint');
+        hint.textContent = '';
+        if (d.length !== 8) return;
+        hint.textContent = 'Buscando o endereço…';
+        fetch('https://viacep.com.br/ws/' + d + '/json/').then(function (r) { return r.json(); }).then(function (a) {
+          if (a.erro) { hint.textContent = 'CEP não encontrado. Confira ou preencha o endereço.'; return; }
+          hint.textContent = '';
+          if (a.logradouro) form.street.value = a.logradouro;
+          if (a.bairro) form.district.value = a.bairro;
+          form.city.value = a.localidade || ''; form.uf.value = a.uf || '';
+          form.number.focus();
+        }).catch(function () { hint.textContent = 'Sem conexão com a busca de CEP: preencha o endereço.'; });
+      };
+      Array.prototype.forEach.call(form.pay, function (r) {
+        r.onchange = function () { var conta = form.pay.value === 'conta'; document.getElementById('pay-conta').hidden = !conta; document.getElementById('pay-pix').hidden = conta; };
+      });
       var num = function (v) { v = (v || '').trim().replace(',', '.'); return v === '' ? null : Number(v); };
       var brl = function (c) { return (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); };
       form.price.oninput = function () {
@@ -140,26 +251,35 @@
         var f = form;
         if (f.name.value.trim().length < 2) return void (err.textContent = 'Informe seu nome.');
         if (f.whatsapp.value.replace(/\D/g, '').length < 10) return void (err.textContent = 'Informe seu WhatsApp com DDD.');
+        if (!emailOk) return void (err.textContent = 'Confirme seu e-mail com o código antes de cadastrar.');
+        if (!validDoc(f.doc.value)) return void (err.textContent = 'Informe um CPF ou CNPJ válido.');
+        if (dig(f.cep.value).length !== 8) return void (err.textContent = 'Informe o CEP.');
+        if (!f.street.value.trim() || !f.city.value.trim() || !f.uf.value.trim()) return void (err.textContent = 'Complete o endereço.');
+        var conta = f.pay.value === 'conta';
+        if (conta ? !(f.bank.value.trim() && f.agency.value.trim() && f.account.value.trim()) : !f.pix.value.trim())
+          return void (err.textContent = conta ? 'Informe banco, agência e conta.' : 'Informe a chave PIX.');
         if (!at) return void (err.textContent = 'Marque a posição da poita no mapa.');
         if (!f.consent.checked) return void (err.textContent = 'Aceite o contato pelo WhatsApp para ativarmos a poita.');
         var price = num(f.price.value);
         var btn = document.getElementById('send');
         btn.disabled = true; btn.textContent = 'Enviando…';
-        fetch(URL + '/rest/v1/rpc/register_mooring_application', {
-          method: 'POST',
-          headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            p_owner_name: f.name.value.trim(), p_whatsapp: f.whatsapp.value.trim(), p_lat: at.lat, p_lng: at.lng, p_consent: true,
-            p_email: f.email.value.trim() || null, p_place: f.place.value.trim() || null,
-            p_depth_m: num(f.depth.value), p_max_length_ft: num(f.len.value),
-            p_nightly_price_cents: price ? Math.round(price * 100) : null,
-            p_easy_shore_access: f.shore.checked, p_has_capitania_doc: f.doc.checked, p_description: f.desc.value.trim() || null
-          })
-        }).then(function (r) {
-          return r.json().catch(function () { return null; }).then(function (b) {
-            if (!r.ok || typeof b !== 'string') throw new Error((b && b.message && !/function|schema/i.test(b.message)) ? b.message : 'Não foi possível cadastrar agora. Tente de novo em instantes.');
-            return b;
-          });
+        sb.rpc('register_mooring_application_v2', { p: {
+            owner_name: f.name.value.trim(), whatsapp: f.whatsapp.value.trim(), lat: at.lat, lng: at.lng, consent: true,
+            email: f.email.value.trim() || null, place: f.place.value.trim() || null,
+            depth_m: num(f.depth.value), max_length_ft: num(f.len.value),
+            nightly_price_cents: price ? Math.round(price * 100) : null,
+            easy_shore_access: f.shore.checked, has_capitania_doc: f.capitania.checked, description: f.desc.value.trim() || null,
+            doc_number: dig(f.doc.value), phone: f.phone.value.trim() || null, cep: dig(f.cep.value),
+            street: f.street.value.trim(), street_number: f.number.value.trim() || null, complement: f.complement.value.trim() || null,
+            district: f.district.value.trim() || null, city: f.city.value.trim(), uf: f.uf.value.trim().toUpperCase(),
+            pix_key: conta ? null : f.pix.value.trim(),
+            bank_name: conta ? f.bank.value.trim() : null, bank_agency: conta ? f.agency.value.trim() : null,
+            bank_account: conta ? f.account.value.trim() : null, bank_account_type: conta ? f.acctype.value : null,
+            account_holder: conta ? (f.holder.value.trim() || f.name.value.trim()) : null
+          } }).then(function (r) {
+          if (r.error) throw new Error(r.error.message && !/function|schema/i.test(r.error.message) ? r.error.message : 'Não foi possível cadastrar agora. Tente de novo em instantes.');
+          if (typeof r.data !== 'string') throw new Error('Resposta inesperada do servidor.');
+          return r.data;
         }).then(function (n) {
           form.hidden = true;
           document.getElementById('num').textContent = n;
