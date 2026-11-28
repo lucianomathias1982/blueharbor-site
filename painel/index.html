@@ -452,7 +452,7 @@
             '<td>' + (a.nightly_price_cents ? brl(a.nightly_price_cents) : '–') + '</td>' +
             '<td><span class="pill s-' + a.status + '">' + STATUS[a.status] + '</span><br><select class="st">' +
             Object.keys(STATUS).map(function (k) { return '<option value="' + k + '"' + (k === a.status ? ' selected' : '') + '>' + STATUS[k] + '</option>'; }).join('') +
-            '</select><textarea class="nt" placeholder="Anotação da equipe">' + esc(a.staff_notes || '') + '</textarea><div class="row"><button class="btn ghost sv">Salvar</button><button class="btn ghost del" data-num="' + esc(a.number) + '" data-name="' + esc(a.owner_name) + '">Excluir</button></div></td></tr>';
+            '</select><textarea class="nt" placeholder="Anotação da equipe">' + esc(a.staff_notes || '') + '</textarea><div class="row">' + (a.mooring_id ? '<span class="pill s-aprovado">No app</span>' : '<button class="btn act" data-num="' + esc(a.number) + '">Ativar no app</button>') + '<button class="btn ghost sv">Salvar</button><button class="btn ghost del" data-num="' + esc(a.number) + '" data-name="' + esc(a.owner_name) + '">Excluir</button></div></td></tr>';
         }).join('') || '<tr><td colspan="7" class="muted">Nenhum cadastro ainda. Mande o link blueharbor-ai.app/poita para os donos.</td></tr>');
       Array.prototype.forEach.call(document.querySelectorAll('#apps .sv'), function (btn) {
         btn.onclick = function () {
@@ -462,6 +462,18 @@
             btn.disabled = false;
             if (r.error) { btn.textContent = 'Erro: tente de novo'; return; }
             btn.textContent = 'Salvo';
+            load();
+          });
+        };
+      });
+      // Ativar no app (Luciano, 28/nov/2026): o cadastro vira uma poita verificada que aparece no mapa do app.
+      Array.prototype.forEach.call(document.querySelectorAll('#apps .act'), function (btn) {
+        btn.onclick = function () {
+          var tr = btn.closest('tr');
+          if (!confirm('Ativar a poita ' + btn.dataset.num + ' no app?\n\nEla passa a aparecer no mapa para todos os navegantes, com o valor e os dados deste cadastro.')) return;
+          btn.disabled = true; btn.textContent = 'Ativando…';
+          sb.rpc('activate_mooring_application', { p_id: tr.dataset.id }).then(function (r) {
+            if (r.error) { btn.disabled = false; btn.textContent = 'Ativar no app'; alert('Não foi possível ativar: ' + r.error.message); return; }
             load();
           });
         };
