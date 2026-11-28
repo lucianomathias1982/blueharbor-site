@@ -82,7 +82,7 @@
           <button type="button" class="btn btn--sun" id="send-code">Enviar código</button>
         </div>
         <div class="inline" id="code-step" hidden>
-          <label>Código que chegou no e-mail <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></label>
+          <label>Código que chegou no e-mail <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10"></label>
           <button type="button" class="btn btn--sun" id="confirm-code">Confirmar</button>
         </div>
         <span class="hint" id="email-hint">Mandamos um código para confirmar o e-mail.</span>
@@ -193,7 +193,7 @@
         });
       };
       document.getElementById('confirm-code').onclick = function () {
-        sb.auth.verifyOtp({ email: form.email.value.trim().toLowerCase(), token: form.code.value.trim(), type: 'email' }).then(function (r) {
+        sb.auth.verifyOtp({ email: form.email.value.trim().toLowerCase(), token: form.code.value.replace(/\D/g, ''), type: 'email' }).then(function (r) {
           if (r.error) { emailHint.textContent = 'Código inválido ou vencido. Peça outro.'; document.getElementById('send-code').hidden = false; return; }
           emailOk = true; emailHint.textContent = 'E-mail confirmado.';
           document.getElementById('code-step').hidden = true;
