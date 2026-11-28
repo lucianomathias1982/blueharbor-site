@@ -55,15 +55,23 @@
 <body>
   <header>
     <b>Painel BlueHarbor</b>
-    <span class="row"><span id="who" class="muted" style="color:#C5D3E6"></span><button id="out" hidden>Sair</button></span>
+    <span class="row"><span id="who" class="muted" style="color:#C5D3E6"></span><button id="change-pw" hidden>Senha</button> <button id="out" hidden>Sair</button></span>
   </header>
   <main>
     <section id="login" class="login card" hidden>
       <h2 style="margin-top:0">Entrar</h2>
-      <p class="muted">Só para a equipe BlueHarbor. Mandamos um código para o seu e-mail.</p>
-      <div id="step1" class="login" style="margin:0">
+      <p class="muted">Só para a equipe BlueHarbor.</p>
+      <div id="pw" class="login" style="margin:0">
+        <input id="pw-email" type="email" autocomplete="username" placeholder="seu e-mail @blueharbor-ai.app">
+        <input id="pw-pass" type="password" autocomplete="current-password" placeholder="Senha">
+        <button class="btn" id="pw-go">Entrar</button>
+        <button class="btn ghost" id="to-code">Primeira vez ou esqueceu a senha? Entrar com código</button>
+      </div>
+      <div id="step1" class="login" style="margin:0" hidden>
+        <p class="muted" style="margin:0">Mandamos um código para o seu e-mail. Depois de entrar, você cria a sua senha.</p>
         <input id="email" type="email" autocomplete="email" placeholder="seu e-mail @blueharbor-ai.app">
         <button class="btn" id="send">Enviar código</button>
+        <button class="btn ghost" id="to-pw">Voltar para e-mail e senha</button>
       </div>
       <div id="step2" class="login" style="margin:0" hidden>
         <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Código do e-mail">
@@ -71,6 +79,16 @@
         <button class="btn ghost" id="back">Trocar e-mail</button>
       </div>
       <p class="err" id="err" role="alert"></p>
+    </section>
+
+    <section id="setpw" class="login card" hidden>
+      <h2 style="margin-top:0">Sua senha</h2>
+      <p class="muted">Crie ou troque a senha para entrar das próximas vezes só com e-mail e senha. Pelo menos 8 caracteres.</p>
+      <input id="new-pass" type="password" autocomplete="new-password" placeholder="Nova senha">
+      <input id="new-pass2" type="password" autocomplete="new-password" placeholder="Repita a nova senha">
+      <button class="btn" id="save-pass">Salvar senha</button>
+      <button class="btn ghost" id="skip-pass">Agora não</button>
+      <p class="err" id="pw-err" role="alert"></p>
     </section>
 
     <section id="app" hidden>
@@ -127,7 +145,41 @@
     var STATUS = { novo: 'Novo', em_contato: 'Em contato', aprovado: 'Aprovado', recusado: 'Recusado' };
     var data = null, map = null, layer = null;
 
-    function show(logged) { $('login').hidden = logged; $('app').hidden = !logged; $('out').hidden = !logged; }
+    function show(logged) { $('login').hidden = logged; $('app').hidden = !logged; $('out').hidden = !logged; $('change-pw').hidden = !logged; if (!logged) $('setpw').hidden = true; }
+    // Entrar com e-mail e senha (Luciano, 27/nov/2026: "sign in do painel por login e senha, mais fácil").
+    $('pw-go').onclick = function () {
+      $('err').textContent = '';
+      var email = $('pw-email').value.trim().toLowerCase(), pass = $('pw-pass').value;
+      if (!/@/.test(email) || !pass) return void ($('err').textContent = 'Informe o e-mail e a senha.');
+      $('pw-go').disabled = true;
+      sb.auth.signInWithPassword({ email: email, password: pass }).then(function (r) {
+        $('pw-go').disabled = false;
+        if (r.error) return void ($('err').textContent = /invalid/i.test(r.error.message) ? 'E-mail ou senha errados. Se ainda não criou a senha, entre com código.' : r.error.message);
+        load();
+      });
+    };
+    $('pw-pass').onkeydown = function (e) { if (e.key === 'Enter') $('pw-go').click(); };
+    $('to-code').onclick = function () { $('err').textContent = ''; $('pw').hidden = true; $('step1').hidden = false; $('email').value = $('pw-email').value; };
+    $('to-pw').onclick = function () { $('err').textContent = ''; $('step1').hidden = true; $('step2').hidden = true; $('pw').hidden = false; };
+    // Entered with the code or the e-mail link: offer to create the password right away.
+    var cameByCode = /access_token|type=magiclink/.test(location.hash);
+    $('change-pw').onclick = function () { $('setpw').hidden = false; $('new-pass').focus(); };
+    $('skip-pass').onclick = function () { $('setpw').hidden = true; };
+    $('save-pass').onclick = function () {
+      var a = $('new-pass').value, b = $('new-pass2').value;
+      $('pw-err').textContent = '';
+      if (a.length < 8) return void ($('pw-err').textContent = 'Use pelo menos 8 caracteres.');
+      if (a !== b) return void ($('pw-err').textContent = 'As duas senhas não são iguais.');
+      $('save-pass').disabled = true;
+      sb.auth.updateUser({ password: a }).then(function (r) {
+        $('save-pass').disabled = false;
+        if (r.error) return void ($('pw-err').textContent = /different|same/i.test(r.error.message) ? 'Essa já é a sua senha.' : r.error.message);
+        $('new-pass').value = ''; $('new-pass2').value = '';
+        $('pw-err').textContent = '';
+        $('setpw').hidden = true;
+        alert('Senha salva. Das próximas vezes, entre com e-mail e senha.');
+      });
+    };
 
     $('send').onclick = function () {
       var email = $('email').value.trim().toLowerCase();
@@ -145,6 +197,7 @@
       $('err').textContent = '';
       sb.auth.verifyOtp({ email: $('email').value.trim().toLowerCase(), token: $('code').value.replace(/\D/g, ''), type: 'email' }).then(function (r) {
         if (r.error) return void ($('err').textContent = 'Código inválido ou vencido.');
+        cameByCode = true;
         load();
       });
     };
@@ -166,6 +219,7 @@
             return;
           }
           data = r.data; show(true); render();
+          if (cameByCode) { cameByCode = false; $('setpw').hidden = false; }
         });
       });
     }
