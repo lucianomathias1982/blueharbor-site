@@ -48,6 +48,30 @@
     .bars { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding-top: 8px; }
     .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .75rem; color: var(--text2); }
     .bar i { display: block; width: 100%; background: var(--sea); border-radius: 6px 6px 0 0; min-height: 2px; }
+    .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+    .chart h3 { margin: 0 0 2px; font-size: 1rem; }
+    .chart .sub { margin: 0 0 12px; font-size: .85rem; color: var(--text2); }
+    .donut-wrap { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .donut { width: 150px; height: 150px; flex: none; }
+    .donut .c-v { font-family: Fraunces, Georgia, serif; font-size: 26px; fill: var(--text); }
+    .donut .c-l { font-size: 11px; fill: var(--text2); font-weight: 600; }
+    .donut path { transition: opacity .15s; }
+    .donut path:hover { opacity: .8; }
+    .legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; flex: 1; min-width: 150px; }
+    .legend li { display: grid; grid-template-columns: 12px 1fr auto; gap: 8px; align-items: center; font-size: .9rem; }
+    .legend .sw { width: 12px; height: 12px; border-radius: 3px; }
+    .legend .val { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .legend .pct { color: var(--text2); font-weight: 500; font-size: .82rem; margin-left: 4px; }
+    .empty { color: var(--text2); font-size: .9rem; padding: 24px 0; text-align: center; }
+    .hbars { display: grid; gap: 8px; }
+    .hbar { display: grid; grid-template-columns: minmax(90px, 140px) 1fr 36px; gap: 8px; align-items: center; font-size: .9rem; }
+    .hbar .t { height: 14px; background: #EEF3F9; border-radius: 4px; overflow: hidden; }
+    .hbar .t i { display: block; height: 100%; background: #2a78d6; border-radius: 0 4px 4px 0; }
+    .hbar .n { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .days { display: flex; align-items: flex-end; gap: 3px; height: 120px; border-bottom: 1px solid var(--line); }
+    .days i { flex: 1; background: #2a78d6; border-radius: 4px 4px 0 0; min-height: 0; }
+    .days i.z { background: transparent; }
+    .days-ax { display: flex; justify-content: space-between; font-size: .75rem; color: var(--text2); margin-top: 4px; }
     .note { background: #FFF8E1; border: 1px solid #F4D58D; border-radius: 12px; padding: 10px 14px; font-size: .9rem; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   </style>
@@ -100,6 +124,16 @@
 
       <h2>Resumo</h2>
       <div class="kpis" id="kpis"></div>
+
+      <h2>Visão geral</h2>
+      <div class="charts">
+        <div class="card chart"><h3>Cadastros de poita por andamento</h3><p class="sub">Onde está cada poita cadastrada</p><div id="ch-status"></div></div>
+        <div class="card chart"><h3>Para onde vai o dinheiro de uma diária</h3><p class="sub" id="ch-split-sub"></p><div id="ch-split"></div></div>
+        <div class="card chart"><h3>Cadastros por estado</h3><p class="sub">De onde vêm os donos de poita</p><div id="ch-uf"></div></div>
+        <div class="card chart"><h3>Aluguéis por andamento</h3><p class="sub">Reservas de poita feitas no app</p><div id="ch-book"></div></div>
+        <div class="card chart"><h3>Cadastros nos últimos 30 dias</h3><p class="sub" id="ch-days-sub"></p><div id="ch-days"></div></div>
+        <div class="card chart"><h3>Cidades com mais cadastros</h3><p class="sub">As 6 primeiras</p><div id="ch-city"></div></div>
+      </div>
 
       <h2>Receita BlueHarbor por mês</h2>
       <div class="card"><div class="bars" id="bars"></div><p class="muted" id="bars-note"></p></div>
@@ -233,12 +267,108 @@
       return keys.map(function (k) { return '<tr><td>' + esc((labels && labels[k]) || k) + '</td><td style="text-align:right">' + n(obj[k]) + '</td></tr>'; }).join('');
     }
 
+
+    // ---------- gráficos (Luciano, 27/nov/2026: "gráficos de pizza e formas mais fáceis de visualizar") ----------
+    var PAL = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#6250d6'];
+    var GREY = '#9AA6B6';
+    function donut(el, items, center, centerLabel, money) {
+      var total = items.reduce(function (t, x) { return t + x.value; }, 0);
+      if (!total) { el.innerHTML = '<p class="empty">Nada ainda.</p>'; return; }
+      var R = 70, r = 46, cx = 75, cy = 75, a0 = -Math.PI / 2, paths = '';
+      var shown = items.filter(function (x) { return x.value > 0; });
+      shown.forEach(function (x) {
+        var frac = x.value / total, a1 = a0 + frac * Math.PI * 2;
+        var fmt = money ? brl(x.value) : n(x.value);
+        if (shown.length === 1) {
+          paths += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (R + r) / 2 + '" fill="none" stroke="' + x.color + '" stroke-width="' + (R - r) + '"><title>' + esc(x.label) + ': ' + fmt + '</title></circle>';
+        } else {
+          var big = a1 - a0 > Math.PI ? 1 : 0;
+          var p = function (rad, a) { return (cx + rad * Math.cos(a)).toFixed(2) + ' ' + (cy + rad * Math.sin(a)).toFixed(2); };
+          paths += '<path d="M' + p(R, a0) + ' A' + R + ' ' + R + ' 0 ' + big + ' 1 ' + p(R, a1) + ' L' + p(r, a1) + ' A' + r + ' ' + r + ' 0 ' + big + ' 0 ' + p(r, a0) + ' Z" fill="' + x.color + '" stroke="#fff" stroke-width="2"><title>' + esc(x.label) + ': ' + fmt + ' (' + Math.round(frac * 100) + '%)</title></path>';
+        }
+        a0 = a1;
+      });
+      var svg = '<svg class="donut" viewBox="0 0 150 150" role="img" aria-label="' + esc(centerLabel) + '">' + paths +
+        '<text class="c-v" x="75" y="78" text-anchor="middle"' + (String(center).length > 6 ? ' style="font-size:' + (String(center).length > 8 ? 16 : 19) + 'px"' : '') + '>' + center + '</text><text class="c-l" x="75" y="96" text-anchor="middle">' + esc(centerLabel) + '</text></svg>';
+      var legend = '<ul class="legend">' + items.map(function (x) {
+        var pct = total ? Math.round(100 * x.value / total) : 0;
+        return '<li><span class="sw" style="background:' + x.color + '"></span><span>' + esc(x.label) + '</span><span class="val">' + (money ? brl(x.value) : n(x.value)) + '<span class="pct">' + pct + '%</span></span></li>';
+      }).join('') + '</ul>';
+      el.innerHTML = '<div class="donut-wrap">' + svg + legend + '</div>';
+    }
+    function topN(counts, k) {
+      var list = Object.keys(counts).map(function (key) { return { label: key, value: counts[key] }; }).sort(function (a, b) { return b.value - a.value; });
+      if (list.length <= k) return list;
+      var rest = list.slice(k - 1).reduce(function (t, x) { return t + x.value; }, 0);
+      return list.slice(0, k - 1).concat([{ label: 'Outros', value: rest, other: true }]);
+    }
+    function charts() {
+      var apps = data.applications || [], b = data.bookings;
+      var st = { novo: 0, em_contato: 0, aprovado: 0, recusado: 0 };
+      apps.forEach(function (a) { st[a.status] = (st[a.status] || 0) + 1; });
+      donut($('ch-status'), [
+        { label: 'Novos', value: st.novo, color: '#2a78d6' },
+        { label: 'Em contato', value: st.em_contato, color: '#eda100' },
+        { label: 'Aprovados', value: st.aprovado, color: '#1baf7a' },
+        { label: 'Recusados', value: st.recusado, color: '#e34948' }
+      ], n(apps.length), apps.length === 1 ? 'cadastro' : 'cadastros');
+
+      // Uma diária típica: a média do que os donos pediram, ou R$ 150 de exemplo.
+      var asked = apps.map(function (a) { return a.nightly_price_cents; }).filter(function (c) { return c > 0; });
+      var nightly = asked.length ? Math.round(asked.reduce(function (t, c) { return t + c; }, 0) / asked.length) : 16667;
+      var owner = nightly - Math.round(nightly * 0.10), guest = nightly + Math.round(nightly * 0.05);
+      var fee = Math.round(guest * 0.0119), bh = guest - owner - fee;
+      $('ch-split-sub').textContent = (asked.length ? 'Diária média pedida pelos donos' : 'Exemplo') + ': o navegante paga ' + brl(guest) + ' (no PIX)';
+      donut($('ch-split'), [
+        { label: 'Dono da poita', value: owner, color: '#2a78d6' },
+        { label: 'BlueHarbor', value: bh, color: '#1baf7a' },
+        { label: 'Taxa do pagamento (Stripe)', value: fee, color: GREY }
+      ], 'R$ ' + Math.round(guest / 100).toLocaleString('pt-BR'), 'por noite', true);
+
+      var ufs = {};
+      apps.forEach(function (a) { var u = (a.uf || '').toUpperCase() || 'Sem estado'; ufs[u] = (ufs[u] || 0) + 1; });
+      donut($('ch-uf'), topN(ufs, 5).map(function (x, i) { return { label: x.label, value: x.value, color: x.other ? GREY : PAL[i] }; }),
+        n(Object.keys(ufs).length), Object.keys(ufs).length === 1 ? 'estado' : 'estados');
+
+      var bs = b.by_status || {};
+      donut($('ch-book'), [
+        { label: 'Esperando pagamento', value: bs.pendente || 0, color: '#eda100' },
+        { label: 'Confirmados', value: bs.confirmada || 0, color: '#2a78d6' },
+        { label: 'Concluídos', value: bs.concluida || 0, color: '#1baf7a' },
+        { label: 'Cancelados', value: bs.cancelada || 0, color: '#e34948' }
+      ], n((bs.pendente || 0) + (bs.confirmada || 0) + (bs.concluida || 0) + (bs.cancelada || 0)), 'aluguéis');
+
+      var days = [], today = new Date(); today.setHours(0, 0, 0, 0);
+      for (var i = 29; i >= 0; i--) { var d0 = new Date(today.getTime() - i * 864e5); days.push({ d: d0, n: 0 }); }
+      apps.forEach(function (a) {
+        var t = new Date(a.created_at); t.setHours(0, 0, 0, 0);
+        var k = Math.round((today - t) / 864e5);
+        if (k >= 0 && k < 30) days[29 - k].n++;
+      });
+      var maxD = Math.max.apply(null, days.map(function (x) { return x.n; }).concat([1]));
+      var last30 = days.reduce(function (t, x) { return t + x.n; }, 0);
+      $('ch-days-sub').textContent = n(last30) + (last30 === 1 ? ' cadastro' : ' cadastros') + ' no período';
+      var dm = function (x) { return x.d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }); };
+      $('ch-days').innerHTML = '<div class="days">' + days.map(function (x) {
+        return '<i class="' + (x.n ? '' : 'z') + '" style="height:' + Math.round(100 * x.n / maxD) + '%" title="' + dm(x) + ': ' + x.n + '"></i>';
+      }).join('') + '</div><div class="days-ax"><span>' + dm(days[0]) + '</span><span>hoje</span></div>';
+
+      var cities = {};
+      apps.forEach(function (a) { var c = a.city ? a.city + (a.uf ? '/' + a.uf : '') : (a.place || 'Sem cidade'); cities[c] = (cities[c] || 0) + 1; });
+      var top = Object.keys(cities).map(function (k) { return { label: k, value: cities[k] }; }).sort(function (a, b) { return b.value - a.value; }).slice(0, 6);
+      var maxC = Math.max.apply(null, top.map(function (x) { return x.value; }).concat([1]));
+      $('ch-city').innerHTML = top.length ? '<div class="hbars">' + top.map(function (x) {
+        return '<div class="hbar"><span title="' + esc(x.label) + '">' + esc(x.label) + '</span><span class="t"><i style="width:' + Math.round(100 * x.value / maxC) + '%"></i></span><span class="n">' + n(x.value) + '</span></div>';
+      }).join('') + '</div>' : '<p class="empty">Nada ainda.</p>';
+    }
+
     function render() {
       var d = data, b = d.bookings, s = d.services, p = d.payments, apps = d.applications || [];
       var revenue = (b.platform_cents || 0) + (s.platform_cents || 0) + (p.subscriptions_cents || 0) + (p.tags_cents || 0);
       var newApps = apps.filter(function (a) { return a.status === 'novo'; }).length;
       var done = (b.by_status.confirmada || 0) + (b.by_status.concluida || 0);
       $('when').textContent = 'Atualizado em ' + date(d.generated_at);
+      charts();
       $('kpis').innerHTML = [
         kpi('Poitas cadastradas', n(apps.length), newApps + ' novas esperando contato'),
         kpi('Poitas ativas no app', n(d.moorings.active), n(d.moorings.total) + ' no total'),
@@ -254,6 +384,7 @@
 
       var months = b.by_month || [];
       var max = Math.max.apply(null, months.map(function (m) { return m.platform_cents || 0; }).concat([1]));
+      $('bars').style.height = months.length ? '' : 'auto';
       $('bars').innerHTML = months.length ? months.map(function (m) {
         return '<div class="bar"><span>' + brl(m.platform_cents) + '</span><i style="height:' + Math.round(140 * (m.platform_cents || 0) / max) + 'px"></i><span>' + m.month.slice(5) + '/' + m.month.slice(2, 4) + '</span></div>';
       }).join('') : '<p class="muted">Sem aluguéis pagos ainda.</p>';
