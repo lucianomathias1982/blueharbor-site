@@ -77,15 +77,7 @@
           <label>WhatsApp com DDD <input name="whatsapp" type="tel" autocomplete="tel" placeholder="(12) 99999-9999" required></label>
         </div>
         <label>Telefone (opcional, se for outro) <input name="phone" type="tel" autocomplete="tel"></label>
-        <div class="inline">
-          <label>E-mail <input name="email" type="email" autocomplete="email" required></label>
-          <button type="button" class="btn btn--sun" id="send-code">Enviar código</button>
-        </div>
-        <div class="inline" id="code-step" hidden>
-          <label>Código que chegou no e-mail <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10"></label>
-          <button type="button" class="btn btn--sun" id="confirm-code">Confirmar</button>
-        </div>
-        <span class="hint" id="email-hint">Mandamos um código para confirmar o e-mail.</span>
+        <label>E-mail <input name="email" type="email" autocomplete="email" required></label>
       </fieldset>
       <fieldset>
         <legend>Seu endereço</legend>
@@ -172,33 +164,8 @@
       var URL = 'https://fqygdmwtijdaelsicwru.supabase.co';
       var KEY = 'sb_publishable_dJqPkvoiXoHG4fgLROIl6w_kY2Oy828';
       var form = document.getElementById('f');
-      // E-mail confirmado com código (cria a conta BlueHarbor da pessoa; o cadastro já nasce ligado a ela).
+      // Sem o código no e-mail, por ora (Luciano, 27/nov/2026): o e-mail fica como contato e a equipe confere pelo WhatsApp.
       var sb = supabase.createClient(URL, KEY, { auth: { persistSession: false, autoRefreshToken: false, storageKey: 'bh-poita' } });
-      var emailOk = false;
-      var emailHint = document.getElementById('email-hint');
-      form.email.oninput = function () {
-        if (!emailOk && document.getElementById('code-step').hidden) return;
-        emailOk = false; document.getElementById('send-code').hidden = false; document.getElementById('code-step').hidden = true;
-        emailHint.textContent = 'Mandamos um código para confirmar.';
-      };
-      document.getElementById('send-code').onclick = function () {
-        var e = form.email.value.trim().toLowerCase();
-        if (!/^\S+@\S+\.\S+$/.test(e)) { emailHint.textContent = 'Informe um e-mail válido.'; return; }
-        var b = this; b.disabled = true; emailHint.textContent = 'Enviando…';
-        sb.auth.signInWithOtp({ email: e, options: { shouldCreateUser: true } }).then(function (r) {
-          b.disabled = false;
-          if (r.error) { emailHint.textContent = /rate|seconds/i.test(r.error.message) ? 'Espere um minuto para pedir outro código.' : r.error.message; return; }
-          emailHint.textContent = 'Código enviado para ' + e + '. Veja também o spam.';
-          document.getElementById('send-code').hidden = true; document.getElementById('code-step').hidden = false; form.code.focus();
-        });
-      };
-      document.getElementById('confirm-code').onclick = function () {
-        sb.auth.verifyOtp({ email: form.email.value.trim().toLowerCase(), token: form.code.value.replace(/\D/g, ''), type: 'email' }).then(function (r) {
-          if (r.error) { emailHint.textContent = 'Código inválido ou vencido. Peça outro.'; document.getElementById('send-code').hidden = false; return; }
-          emailOk = true; emailHint.textContent = 'E-mail confirmado.';
-          document.getElementById('code-step').hidden = true;
-        });
-      };
       var err = document.getElementById('err');
       var pos = document.getElementById('pos');
       var at = null, marker = null;
@@ -284,7 +251,7 @@
         var f = form;
         if (f.name.value.trim().length < 2) return void (err.textContent = 'Informe seu nome.');
         if (f.whatsapp.value.replace(/\D/g, '').length < 10) return void (err.textContent = 'Informe seu WhatsApp com DDD.');
-        if (!emailOk) return void (err.textContent = 'Confirme seu e-mail com o código antes de cadastrar.');
+        if (!/^\S+@\S+\.\S+$/.test(f.email.value.trim())) return void (err.textContent = 'Informe um e-mail válido.');
         if (!validDoc(f.doc.value)) return void (err.textContent = 'Informe um CPF ou CNPJ válido.');
         if (dig(f.cep.value).length !== 8) return void (err.textContent = 'Informe o CEP.');
         if (!f.street.value.trim() || !f.city.value.trim() || !f.uf.value.trim()) return void (err.textContent = 'Complete o endereço.');
@@ -296,9 +263,9 @@
         var price = num(f.price.value);
         var btn = document.getElementById('send');
         btn.disabled = true; btn.textContent = 'Enviando…';
-        sb.rpc('register_mooring_application_v2', { p: {
+        sb.rpc('register_mooring_application_v3', { p: {
             owner_name: f.name.value.trim(), whatsapp: f.whatsapp.value.trim(), lat: at.lat, lng: at.lng, consent: true,
-            email: f.email.value.trim() || null, place: f.place.value.trim() || null,
+            email: f.email.value.trim().toLowerCase(), place: f.place.value.trim() || null,
             depth_m: num(f.depth.value), max_length_ft: num(f.len.value),
             nightly_price_cents: price ? quoteFor(Math.round(price * 100)).nightly : null,
             easy_shore_access: f.shore.checked, has_capitania_doc: f.capitania.checked, description: f.desc.value.trim() || null,
